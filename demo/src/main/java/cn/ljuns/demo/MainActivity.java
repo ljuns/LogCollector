@@ -14,7 +14,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        LogCollector.getInstance().start(this);
+        LogCollector.getInstance()
+                .setLogType(LogCollector.ERROR)
+                .setCleanCache(true)
+                .start(this);
 
         Log.d(TAG, "onCreate: ");
     }
