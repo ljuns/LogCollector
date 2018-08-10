@@ -3,7 +3,6 @@ package cn.ljuns.logcollector;
 import android.content.Context;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringDef;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,16 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class LogCollector {
-
-    public static final String VERBOSE = "V/";
-    public static final String DEBUG = "D/";
-    public static final String INFO = "I/";
-    public static final String WARN = "W/";
-    public static final String ERROR = "E/";
-    public static final String ASSERT = "A/";
-
-    @StringDef({VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT})
-    @interface LogType {}
 
     private static final String DEFAULT_FORMAT = "yyyyMMdd_HHmmss_SSS";
 
@@ -68,7 +57,7 @@ public class LogCollector {
      * @param type 缓存类型
      * @return
      */
-    public LogCollector setLogType(@LogType String type) {
+    public LogCollector setLogType(@TagUtils.LogType String type) {
         this.mLogType = type;
         return this;
     }
@@ -84,23 +73,33 @@ public class LogCollector {
         return this;
     }
 
+    /**
+     * 是否显示颜色
+     * @param hasColors
+     * @return
+     */
     public LogCollector setHasColors(boolean hasColors) {
         this.mHasColors = hasColors;
         return this;
     }
 
+    /**
+     * 设置背景颜色
+     * @param bgColor
+     * @return
+     */
     public LogCollector setBgColor(String bgColor) {
         this.mBgColor = bgColor;
         return this;
     }
 
+    /**
+     * 设置各种 logcat 颜色
+     * @param verboseColor
+     * @return
+     */
     public LogCollector setColors(String verboseColor) {
-
-        return this;
-    }
-
-    public LogCollector setBackgroundColor() {
-
+        // TODO: 2018/8/10  
         return this;
     }
 
@@ -159,17 +158,17 @@ public class LogCollector {
                 write(writer, mLogcatColors[1], str);
             }
         } else {
-            if (str.contains(VERBOSE)) {
+            if (str.contains(TagUtils.VERBOSE)) {
                 write(writer, mLogcatColors[0], str);
-            } else if (str.contains(DEBUG)) {
+            } else if (str.contains(TagUtils.DEBUG)) {
                 write(writer, mLogcatColors[1], str);
-            } else if (str.contains(INFO)) {
+            } else if (str.contains(TagUtils.INFO)) {
                 write(writer, mLogcatColors[2], str);
-            } else if (str.contains(WARN)) {
+            } else if (str.contains(TagUtils.WARN)) {
                 write(writer, mLogcatColors[3], str);
-            } else if (str.contains(ERROR)) {
+            } else if (str.contains(TagUtils.ERROR)) {
                 write(writer, mLogcatColors[4], str);
-            } else if (str.contains(ASSERT)) {
+            } else if (str.contains(TagUtils.ASSERT)) {
                 write(writer, mLogcatColors[5], str);
             } else {
                 write(writer, mLogcatColors[6], str);
