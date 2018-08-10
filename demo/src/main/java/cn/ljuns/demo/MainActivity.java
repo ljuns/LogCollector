@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import cn.ljuns.logcollector.LogCollector;
+import cn.ljuns.logcollector.TagUtils;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -15,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         LogCollector.getInstance()
-                .setLogType(LogCollector.ERROR)
+                .setLogType(TagUtils.DEBUG)
                 .setCleanCache(true)
                 .start(this);
 
