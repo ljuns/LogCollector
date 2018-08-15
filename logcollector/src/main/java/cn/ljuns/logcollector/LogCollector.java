@@ -13,6 +13,8 @@ import java.io.OutputStreamWriter;
 
 public class LogCollector {
 
+    private Context mContext;
+
     private File mCacheFile;    //缓存文件
     private String[] mLogType;    //过滤类型
     private String mBgColor = TagUtils.BLACK_COLOR;    //背景颜色
@@ -20,10 +22,12 @@ public class LogCollector {
     private boolean mCleanCache = false;    //是否清除缓存日志文件
     private boolean mShowColors = true;  //是否设置颜色
 
-    private LogCollector() {}
+    private LogCollector(Context context) {
+        mContext = context;
+    }
 
-    public static LogCollector getInstance() {
-        return new LogCollector();
+    public static LogCollector getInstance(Context context) {
+        return new LogCollector(context);
     }
 
     /**
@@ -94,8 +98,8 @@ public class LogCollector {
         return this;
     }
 
-    public void start(Context context) {
-        mCacheFile = CacheFile.createCacheFile(context, mCleanCache);
+    public void start() {
+        mCacheFile = CacheFile.createCacheFile(mContext, mCleanCache);
         new Thread(mLogRunnable).start();
     }
 
