@@ -18,24 +18,68 @@ import java.util.Locale;
 public class CacheFile {
 
     private static final String DEFAULT_FORMAT = "yyyyMMdd_HHmmss_SSS";
+    private static final String LOG = "log";
+    private static final String CRASH = "crash";
+    private static final String HTML = ".html";
+    private static final String TXT = ".txt";
+
+
+    /**
+     * 文件名
+     * @return 返回文件名
+     */
+    private static String getFileName(String postfix) {
+        DateFormat format = new SimpleDateFormat(DEFAULT_FORMAT, Locale.getDefault());
+        return format.format(new Date(System.currentTimeMillis())) + postfix;
+    }
+
+    /**
+     * 文件路径
+     * @param context
+     * @param dirName
+     * @return
+     */
+    private static String getCacheFileDir(Context context, String dirName) {
+        String name = "/" + dirName;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+                || !Environment.isExternalStorageRemovable()) {
+            return context.getApplicationContext().getExternalCacheDir() + name;
+        } else {
+            return context.getApplicationContext().getCacheDir() + name;
+        }
+    }
+
+    /**
+     * 创建 logcat 缓存文件
+     * @param context
+     * @param cleanCache
+     * @return
+     */
+    public static File createLogCacheFile(Context context, boolean cleanCache) {
+        String fileName = getFileName(HTML);
+        String fileDir = getCacheFileDir(context, LOG);
+        return createCacheFile(fileDir, fileName, cleanCache);
+    }
+
+    /**
+     * 创建 crash 缓存文件
+     * @param context
+     * @param cleanCache
+     * @return
+     */
+    public static File createCrashCacheFile(Context context, boolean cleanCache) {
+        String fileName = getFileName(TXT);
+        String fileDir = getCacheFileDir(context, CRASH);
+        return createCacheFile(fileDir, fileName, cleanCache);
+    }
 
     /**
      * 创建缓存文件
-     * @param context
+     * @param path
+     * @param fileName
+     * @param cleanCache
      */
-    public static File createCacheFile(Context context, boolean cleanCache) {
-        // 缓存文件
-        DateFormat format = new SimpleDateFormat(DEFAULT_FORMAT, Locale.getDefault());
-        String fileName = format.format(new Date(System.currentTimeMillis())) + ".html";
-
-        String path = null;
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                || !Environment.isExternalStorageRemovable()) {
-            path = context.getApplicationContext().getExternalCacheDir() + "/log";
-        } else {
-            path = context.getApplicationContext().getCacheDir() + "/log";
-        }
-
+    private static File createCacheFile(String path, String fileName, boolean cleanCache) {
         File folder = new File(path);
         if (!folder.exists()) {
             folder.mkdirs();
