@@ -35,4 +35,7 @@ public class TagUtils {
 
     @StringDef({VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT})
     @interface LogType {}
+
+    @StringDef({WHITE_COLOR, BLACK_COLOR})
+    @interface BgColor {}
 }

@@ -13,17 +13,21 @@ import java.io.OutputStreamWriter;
 
 public class LogCollector {
 
-    private File mCacheFile;    //缓存文件
+    private File mCacheFile;    // 缓存文件
     private String[] mLogType;    //过滤类型
-    private String mBgColor = TagUtils.BLACK_COLOR;    //背景颜色
-//    private String[] mLogcatColors; //默认的颜色集合
-    private boolean mCleanCache = false;    //是否清除缓存日志文件
-    private boolean mShowColors = true;  //是否设置颜色
+    private String mBgColor = TagUtils.BLACK_COLOR;    // 背景颜色
+//    private String[] mLogcatColors; // 默认的颜色集合
+    private boolean mCleanCache = false;    // 是否清除缓存日志文件
+    private boolean mShowLogColors = true;  // 是否设置颜色
 
     private LogCollector() {}
 
+    private static class SingletonHolder {
+        private static final LogCollector INSTANCE = new LogCollector();
+    }
+
     public static LogCollector getInstance() {
-        return new LogCollector();
+        return SingletonHolder.INSTANCE;
     }
 
     /**
@@ -65,22 +69,15 @@ public class LogCollector {
     }
 
     /**
-     * 是否显示颜色
-     * @param showColors showColors
-     * @return LogCollector
-     */
-    public LogCollector setShowColors(boolean showColors) {
-        this.mShowColors = showColors;
-        return this;
-    }
-
-    /**
      * 设置背景颜色
      * @param bgColor bgColor
      * @return LogCollector
      */
-    public LogCollector setBgColor(String bgColor) {
+    public LogCollector setBgColor(@TagUtils.BgColor String bgColor) {
         this.mBgColor = bgColor;
+        if (bgColor == TagUtils.WHITE_COLOR) {
+            mShowLogColors = false;
+        }
         return this;
     }
 
@@ -98,13 +95,13 @@ public class LogCollector {
      * 启动
      * @param context Context
      */
-    public void start(Context context) {
+    public synchronized void start(Context context) {
         mCacheFile = CacheFile.createLogCacheFile(context, mCleanCache);
         CrashHandler.getInstance().crash(context, mCleanCache);
-        new Thread(mLogRunnable).start();
+        new Thread(new LogRunnable()).start();
     }
 
-    private Runnable mLogRunnable = new Runnable() {
+    private class LogRunnable implements Runnable {
         @Override
         public void run() {
             BufferedReader reader = null;
@@ -119,7 +116,7 @@ public class LogCollector {
                         new OutputStreamWriter(new FileOutputStream(mCacheFile), "UTF-8"));
 
                 String str = null;
-                writer.write(" <body bgcolor=\" " + (mShowColors ? mBgColor : TagUtils.BLACK_COLOR) + " \">");
+                writer.write(" <body bgcolor=\" " + mBgColor + " \">");
                 while (((str = reader.readLine()) != null)) {
                     Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
                     outputLogcat(writer, str);
@@ -132,7 +129,7 @@ public class LogCollector {
                 CloseUtils.close(writer);
             }
         }
-    };
+    }
 
     /**
      * 输出 logcat
@@ -150,7 +147,7 @@ public class LogCollector {
         } else {
             for (int i = 0; i < TagUtils.TAGS.length; i++) {
                 if (str.contains(TagUtils.TAGS[i])) {
-                    write(writer, mShowColors ? TagUtils.COLORS[i] : "", str);
+                    write(writer, mShowLogColors ? TagUtils.COLORS[i] : "", str);
                 }
             }
         }
