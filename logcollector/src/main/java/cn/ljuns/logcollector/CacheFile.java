@@ -35,9 +35,9 @@ public class CacheFile {
 
     /**
      * 文件路径
-     * @param context
-     * @param dirName
-     * @return
+     * @param context Context
+     * @param dirName 文件夹
+     * @return String
      */
     private static String getCacheFileDir(Context context, String dirName) {
         String name = "/" + dirName;
@@ -51,9 +51,9 @@ public class CacheFile {
 
     /**
      * 创建 logcat 缓存文件
-     * @param context
-     * @param cleanCache
-     * @return
+     * @param context Context
+     * @param cleanCache 是否删除缓存
+     * @return File
      */
     public static File createLogCacheFile(Context context, boolean cleanCache) {
         String fileName = getFileName(HTML);
@@ -63,9 +63,9 @@ public class CacheFile {
 
     /**
      * 创建 crash 缓存文件
-     * @param context
-     * @param cleanCache
-     * @return
+     * @param context Context
+     * @param cleanCache 是否删除缓存
+     * @return File
      */
     public static File createCrashCacheFile(Context context, boolean cleanCache) {
         String fileName = getFileName(TXT);
@@ -75,9 +75,9 @@ public class CacheFile {
 
     /**
      * 创建缓存文件
-     * @param path
-     * @param fileName
-     * @param cleanCache
+     * @param path path
+     * @param fileName fileName
+     * @param cleanCache cleanCache
      */
     private static File createCacheFile(String path, String fileName, boolean cleanCache) {
         File folder = new File(path);

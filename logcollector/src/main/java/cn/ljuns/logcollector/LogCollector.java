@@ -29,8 +29,8 @@ public class LogCollector {
     /**
      * 设置缓存文件
      *
-     * @param file
-     * @return
+     * @param file file
+     * @return LogCollector
      */
     private LogCollector setCacheFile(@NonNull File file) {
         this.mCacheFile = file;
@@ -46,7 +46,7 @@ public class LogCollector {
      * 设置缓存类型
      *
      * @param types 缓存类型
-     * @return
+     * @return LogCollector
      */
     public LogCollector setLogType(@TagUtils.LogType String... types) {
         this.mLogType = types;
@@ -57,7 +57,7 @@ public class LogCollector {
      * 是否清除之前的缓存
      *
      * @param cleanCache 是否清除
-     * @return
+     * @return LogCollector
      */
     public LogCollector setCleanCache(boolean cleanCache) {
         this.mCleanCache = cleanCache;
@@ -66,8 +66,8 @@ public class LogCollector {
 
     /**
      * 是否显示颜色
-     * @param showColors
-     * @return
+     * @param showColors showColors
+     * @return LogCollector
      */
     public LogCollector setShowColors(boolean showColors) {
         this.mShowColors = showColors;
@@ -76,8 +76,8 @@ public class LogCollector {
 
     /**
      * 设置背景颜色
-     * @param bgColor
-     * @return
+     * @param bgColor bgColor
+     * @return LogCollector
      */
     public LogCollector setBgColor(String bgColor) {
         this.mBgColor = bgColor;
@@ -86,8 +86,8 @@ public class LogCollector {
 
     /**
      * 设置各种 logcat 颜色
-     * @param verboseColor
-     * @return
+     * @param verboseColor verboseColor
+     * @return LogCollector
      */
     public LogCollector setColors(String verboseColor) {
         // TODO: 2018/8/10  
@@ -96,7 +96,7 @@ public class LogCollector {
 
     /**
      * 启动
-     * @param context
+     * @param context Context
      */
     public void start(Context context) {
         mCacheFile = CacheFile.createLogCacheFile(context, mCleanCache);
@@ -136,8 +136,8 @@ public class LogCollector {
 
     /**
      * 输出 logcat
-     * @param writer
-     * @param str
+     * @param writer BufferedWriter
+     * @param str str
      * @throws IOException
      */
     private void outputLogcat(BufferedWriter writer, String str) throws IOException {
@@ -158,9 +158,9 @@ public class LogCollector {
 
     /**
      * 写数据
-     * @param writer
-     * @param color
-     * @param str
+     * @param writer BufferedWriter
+     * @param color color
+     * @param str str
      * @throws IOException
      */
     private void write(BufferedWriter writer, String color, String str) throws IOException {
