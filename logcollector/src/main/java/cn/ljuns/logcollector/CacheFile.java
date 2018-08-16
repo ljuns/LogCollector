@@ -26,7 +26,7 @@ public class CacheFile {
 
     /**
      * 文件名
-     * @return 返回文件名
+     * @return FileName
      */
     private static String getFileName(String postfix) {
         DateFormat format = new SimpleDateFormat(DEFAULT_FORMAT, Locale.getDefault());
@@ -36,8 +36,8 @@ public class CacheFile {
     /**
      * 文件路径
      * @param context Context
-     * @param dirName 文件夹
-     * @return String
+     * @param dirName dirName
+     * @return FileDir
      */
     private static String getCacheFileDir(Context context, String dirName) {
         String name = "/" + dirName;
@@ -52,8 +52,8 @@ public class CacheFile {
     /**
      * 创建 logcat 缓存文件
      * @param context Context
-     * @param cleanCache 是否删除缓存
-     * @return File
+     * @param cleanCache cleanCache
+     * @return LogCacheFile
      */
     public static File createLogCacheFile(Context context, boolean cleanCache) {
         String fileName = getFileName(HTML);
@@ -64,8 +64,8 @@ public class CacheFile {
     /**
      * 创建 crash 缓存文件
      * @param context Context
-     * @param cleanCache 是否删除缓存
-     * @return File
+     * @param cleanCache cleanCache
+     * @return CrashCacheFile
      */
     public static File createCrashCacheFile(Context context, boolean cleanCache) {
         String fileName = getFileName(TXT);
@@ -95,9 +95,9 @@ public class CacheFile {
     /**
      * 初始化缓存文件
      *
-     * @param fileName 缓存文件名
-     * @param folder   文件夹
-     * @param cleanCache   是否清除缓存文件
+     * @param fileName fileName
+     * @param folder   folder
+     * @param cleanCache   cleanCache
      */
     private static File initCacheFile(String fileName, File folder, boolean cleanCache) {
         // 是否删除缓存日志文件
@@ -120,7 +120,7 @@ public class CacheFile {
     /**
      * 删除缓存文件
      *
-     * @param folder 文件夹
+     * @param folder folder
      */
     private static void cleanCache(File folder) {
         for (File file : folder.listFiles()) {
@@ -131,7 +131,7 @@ public class CacheFile {
     /**
      * 获取缓存大小
      *
-     * @param folder log 文件夹
+     * @param folder folder
      */
     private static void computeSize(File folder) {
         long length = 0L;

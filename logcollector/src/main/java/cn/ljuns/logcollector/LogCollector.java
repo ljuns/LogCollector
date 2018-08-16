@@ -45,7 +45,7 @@ public class LogCollector {
     /**
      * 设置缓存类型
      *
-     * @param types 缓存类型
+     * @param types LogType
      * @return LogCollector
      */
     public LogCollector setLogType(@TagUtils.LogType String... types) {
@@ -56,7 +56,7 @@ public class LogCollector {
     /**
      * 是否清除之前的缓存
      *
-     * @param cleanCache 是否清除
+     * @param cleanCache cleanCache
      * @return LogCollector
      */
     public LogCollector setCleanCache(boolean cleanCache) {
