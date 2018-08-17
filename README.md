@@ -5,7 +5,7 @@
 1. 在 module 的 `build.gradle ` 中添加依赖：
 	``` gradle
 	dependencies {
-		implementation 'com.ljuns:logcollector:0.0.1'
+	    implementation 'com.ljuns:logcollector:0.0.1'
 	}
 	```
 2. 在 AndroidManifest.xml 中申请如下权限：
