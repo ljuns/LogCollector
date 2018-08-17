@@ -15,7 +15,7 @@ public class LogCollector {
 
     private File mCacheFile;    // 缓存文件
     private String[] mLogType;    //过滤类型
-    private String mBgColor = TagUtils.BLACK_COLOR;    // 背景颜色
+    private String mBgColor = ColorUtils.BLACK_COLOR;    // 背景颜色
 //    private String[] mLogcatColors; // 默认的颜色集合
     private boolean mCleanCache = false;    // 是否清除缓存日志文件
     private boolean mShowLogColors = true;  // 是否设置颜色
@@ -73,9 +73,9 @@ public class LogCollector {
      * @param bgColor bgColor
      * @return LogCollector
      */
-    public LogCollector setBgColor(@TagUtils.BgColor String bgColor) {
+    public LogCollector setBgColor(@ColorUtils.BgColor String bgColor) {
         this.mBgColor = bgColor;
-        if (bgColor == TagUtils.WHITE_COLOR) {
+        if (bgColor.equals(ColorUtils.WHITE_COLOR)) {
             mShowLogColors = false;
         }
         return this;
@@ -86,7 +86,7 @@ public class LogCollector {
      * @param verboseColor verboseColor
      * @return LogCollector
      */
-    public LogCollector setColors(String verboseColor) {
+    private LogCollector setColors(String verboseColor) {
         // TODO: 2018/8/10  
         return this;
     }
@@ -141,13 +141,13 @@ public class LogCollector {
         if (mLogType != null && mLogType.length > 0) {
             for (String type : mLogType) {
                 if (str.contains(type)) {
-                    write(writer, TagUtils.tagWithColor.get(mLogType[0]), str);
+                    write(writer, ColorUtils.COLORS[TagUtils.getIndex(mLogType[0])], str);
                 }
             }
         } else {
             for (int i = 0; i < TagUtils.TAGS.length; i++) {
                 if (str.contains(TagUtils.TAGS[i])) {
-                    write(writer, mShowLogColors ? TagUtils.COLORS[i] : "", str);
+                    write(writer, mShowLogColors ? ColorUtils.COLORS[i] : "", str);
                 }
             }
         }
