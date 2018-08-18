@@ -1,6 +1,6 @@
 package cn.ljuns.logcollector;
 
-import android.content.Context;
+import android.app.Application;
 import android.support.annotation.NonNull;
 
 import java.io.BufferedReader;
@@ -11,23 +11,36 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-public class LogCollector {
+public class LogCollector implements CrashHandlerListener {
 
+    private Application mContext;
     private File mCacheFile;    // 缓存文件
+
+    private String[] mLogcatColors;
     private String[] mLogType;    //过滤类型
-    private String mBgColor = TagUtils.BLACK_COLOR;    // 背景颜色
-//    private String[] mLogcatColors; // 默认的颜色集合
+    private String mBgColor = "#FFFFFFFF";    // 背景颜色
+
     private boolean mCleanCache = false;    // 是否清除缓存日志文件
-    private boolean mShowLogColors = true;  // 是否设置颜色
+    private boolean mShowLogColors = false;  // 是否设置颜色
 
-    private LogCollector() {}
+    private LogRunnable mLogRunnable;
 
-    private static class SingletonHolder {
-        private static final LogCollector INSTANCE = new LogCollector();
+    private static volatile LogCollector sLogCollector;
+
+    private LogCollector(Application context) {
+        this.mContext = context;
+        mLogcatColors = new String[TagUtils.TAGS.length];
     }
 
-    public static LogCollector getInstance() {
-        return SingletonHolder.INSTANCE;
+    public static LogCollector getInstance(Application context) {
+        if (sLogCollector == null) {
+            synchronized (LogCollector.class) {
+                if (sLogCollector == null) {
+                    sLogCollector = new LogCollector(context);
+                }
+            }
+        }
+        return sLogCollector;
     }
 
     /**
@@ -52,7 +65,7 @@ public class LogCollector {
      * @param types LogType
      * @return LogCollector
      */
-    public LogCollector setLogType(@TagUtils.LogType String... types) {
+    public LogCollector setLogcatType(@TagUtils.LogcatType String... types) {
         this.mLogType = types;
         return this;
     }
@@ -73,35 +86,50 @@ public class LogCollector {
      * @param bgColor bgColor
      * @return LogCollector
      */
-    public LogCollector setBgColor(@TagUtils.BgColor String bgColor) {
-        this.mBgColor = bgColor;
-        if (bgColor == TagUtils.WHITE_COLOR) {
-            mShowLogColors = false;
-        }
+    private LogCollector setBgColor(int bgColor) {
+//        this.mBgColor = ColorUtils.parseColor(bgColor);
         return this;
     }
 
     /**
      * 设置各种 logcat 颜色
-     * @param verboseColor verboseColor
+     * @param logcatColors logColors
      * @return LogCollector
      */
-    public LogCollector setColors(String verboseColor) {
-        // TODO: 2018/8/10  
+    public LogCollector setLogcatColors(int... logcatColors) {
+        for (int i = 0; i < logcatColors.length; i++) {
+            mLogcatColors[i] = ColorUtils.parseColor(mContext, logcatColors[i]);
+        }
+        mShowLogColors = true;
+
+        if (mLogcatColors.length < TagUtils.TAGS.length) {
+            for (int i = mLogcatColors.length; i < TagUtils.TAGS.length; i++) {
+                mLogcatColors[i] = "#FF000000";
+            }
+        }
+
         return this;
     }
 
     /**
      * 启动
-     * @param context Context
      */
-    public synchronized void start(Context context) {
-        mCacheFile = CacheFile.createLogCacheFile(context, mCleanCache);
-        CrashHandler.getInstance().crash(context, mCleanCache);
-        new Thread(new LogRunnable()).start();
+    public synchronized void start() {
+        mCacheFile = CacheFile.createLogCacheFile(mContext, mCleanCache, mShowLogColors);
+        CrashHandler.getInstance().init(mContext, mCleanCache).crash(this);
+
+        mLogRunnable = new LogRunnable();
+        new Thread(mLogRunnable).start();
+    }
+
+    @Override
+    public void crashHandler() {
+        mLogRunnable.isCrash = true;
     }
 
     private class LogRunnable implements Runnable {
+        volatile boolean isCrash = false;
+
         @Override
         public void run() {
             BufferedReader reader = null;
@@ -116,12 +144,18 @@ public class LogCollector {
                         new OutputStreamWriter(new FileOutputStream(mCacheFile), "UTF-8"));
 
                 String str = null;
-                writer.write(" <body bgcolor=\" " + mBgColor + " \">");
-                while (((str = reader.readLine()) != null)) {
+
+                if (mShowLogColors) {
+                    writer.write("<body bgcolor=\" " + mBgColor + " \">");
+                }
+                while (!isCrash && ((str = reader.readLine()) != null)) {
                     Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
                     outputLogcat(writer, str);
                 }
-                writer.write("</body>");
+                if (mShowLogColors) {
+                    writer.write("</body>");
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -138,20 +172,44 @@ public class LogCollector {
      * @throws IOException
      */
     private void outputLogcat(BufferedWriter writer, String str) throws IOException {
+        String[] logcats = null;
+
         if (mLogType != null && mLogType.length > 0) {
-            for (String type : mLogType) {
-                if (str.contains(type)) {
-                    write(writer, TagUtils.tagWithColor.get(mLogType[0]), str);
+            logcats = mLogType;
+        } else {
+            logcats = TagUtils.TAGS;
+        }
+
+        if (mShowLogColors) {
+            for (int i = 0; i < logcats.length; i++) {
+                if (str.contains(logcats[i])) {
+                    writeWithColors(writer, mLogcatColors[i], str);
                 }
             }
         } else {
-            for (int i = 0; i < TagUtils.TAGS.length; i++) {
-                if (str.contains(TagUtils.TAGS[i])) {
-                    write(writer, mShowLogColors ? TagUtils.COLORS[i] : "", str);
+            if (mLogType != null && mLogType.length > 0) {
+                for (String logcat : logcats) {
+                    if (str.contains(logcat)) {
+                        writeWithoutColors(writer, str);
+                    }
                 }
+            } else {
+                writeWithoutColors(writer, str);
             }
         }
     }
+
+    /**
+     * 写数据
+     * @param writer BufferedWriter
+     * @param str str
+     * @throws IOException
+     */
+    private void writeWithoutColors(BufferedWriter writer, String str) throws IOException {
+        writer.write(str);
+        flush(writer);
+    }
+
 
     /**
      * 写数据
@@ -160,8 +218,12 @@ public class LogCollector {
      * @param str str
      * @throws IOException
      */
-    private void write(BufferedWriter writer, String color, String str) throws IOException {
+    private void writeWithColors(BufferedWriter writer, String color, String str) throws IOException {
         writer.write("<font size=\"3\" color=\"" + color + "\">" + str + "</font></br>");
+        flush(writer);
+    }
+
+    private void flush(BufferedWriter writer) throws IOException {
         writer.newLine();
         writer.flush();
     }
