@@ -43,9 +43,9 @@ public class CacheFile {
         String name = "/" + dirName;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                 || !Environment.isExternalStorageRemovable()) {
-            return context.getApplicationContext().getExternalCacheDir() + name;
+            return context.getExternalCacheDir() + name;
         } else {
-            return context.getApplicationContext().getCacheDir() + name;
+            return context.getCacheDir() + name;
         }
     }
 
@@ -55,8 +55,8 @@ public class CacheFile {
      * @param cleanCache cleanCache
      * @return LogCacheFile
      */
-    public static File createLogCacheFile(Context context, boolean cleanCache) {
-        String fileName = getFileName(HTML);
+    public static File createLogCacheFile(Context context, boolean cleanCache, boolean logColors) {
+        String fileName = getFileName(logColors ? HTML : TXT);
         String fileDir = getCacheFileDir(context, LOG);
         return createCacheFile(fileDir, fileName, cleanCache);
     }

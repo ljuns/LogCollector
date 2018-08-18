@@ -1,6 +1,6 @@
 package cn.ljuns.logcollector;
 
-import android.content.Context;
+import android.app.Application;
 import android.os.Process;
 
 import java.io.BufferedWriter;
@@ -15,8 +15,9 @@ import java.io.PrintWriter;
  */
 public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
-    private Context mContext;
+    private Application mContext;
     private boolean mCleanCache;
+    private CrashHandlerListener mCrashHandlerListener;
     private Thread.UncaughtExceptionHandler mUncaughtExceptionHandler;
     private static CrashHandler sCrashHandler = new CrashHandler();
 
@@ -26,15 +27,22 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         return sCrashHandler;
     }
 
-    public void crash(Context context, boolean cleanCache) {
-        mUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+    public CrashHandler init(Application context, boolean cleanCache) {
+        this.mUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
-        mContext = context;
-        mCleanCache = cleanCache;
+        this.mContext = context;
+        this.mCleanCache = cleanCache;
+
+        return this;
+    }
+
+    public void crash(CrashHandlerListener listener) {
+        mCrashHandlerListener = listener;
     }
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
+        mCrashHandlerListener.crashHandler();
         dumpExceptionToCacheFile(e);
 
         e.printStackTrace();
