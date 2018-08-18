@@ -55,8 +55,8 @@ public class CacheFile {
      * @param cleanCache cleanCache
      * @return LogCacheFile
      */
-    public static File createLogCacheFile(Context context, boolean cleanCache) {
-        String fileName = getFileName(HTML);
+    public static File createLogCacheFile(Context context, boolean cleanCache, boolean logColors) {
+        String fileName = getFileName(logColors ? HTML : TXT);
         String fileDir = getCacheFileDir(context, LOG);
         return createCacheFile(fileDir, fileName, cleanCache);
     }
