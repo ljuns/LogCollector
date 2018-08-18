@@ -14,19 +14,6 @@ public class TagUtils {
     public static final String[] TAGS = new String[]{VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT};
 
     @StringDef({VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT})
-    @interface LogType {}
+    @interface LogcatType {}
 
-    /**
-     * 获取对应的 index
-     * @param tag tag
-     * @return index
-     */
-    public static int getIndex(String tag) {
-        for (int i = 0; i < TAGS.length; i++) {
-            if (tag.equals(TAGS[i])) {
-                return i;
-            }
-        }
-        return 0;
-    }
 }
