@@ -15,10 +15,10 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        LogCollector.getInstance()
+        LogCollector.getInstance(this)
 //                .setLogType(TagUtils.DEBUG)
                 .setCleanCache(true)
                 .setLogcatColors(R.color.colorAccent, R.color.colorPrimaryDark, Color.RED, Color.GREEN)
-                .start(this);
+                .start();
     }
 }

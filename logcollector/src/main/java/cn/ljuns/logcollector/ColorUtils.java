@@ -1,7 +1,7 @@
 package cn.ljuns.logcollector;
 
 import android.content.Context;
-import android.util.Log;
+import android.graphics.Color;
 
 /**
  * Created by ljuns on 2018/8/17
@@ -19,24 +19,12 @@ public class ColorUtils {
             color = context.getResources().getColor(color);
         }
 
+        return "#" +
+                parseARGB(Color.alpha(color)) +
+                parseARGB(Color.red(color)) +
+                parseARGB(Color.green(color)) +
+                parseARGB(Color.blue(color));
 
-        int alpha = (color & 0xff000000) >>> 24;
-        int red   = (color & 0x00ff0000) >> 16;
-        int green = (color & 0x0000ff00) >> 8;
-        int blue  = (color & 0x000000ff);
-
-        Log.d("ljuns", "parseColor: " + color + ": " + parseARGB(alpha) +
-                parseARGB(red) +
-                parseARGB(green) +
-                parseARGB(blue)
-                .toUpperCase());
-
-        return ("#" +
-                parseARGB(alpha) +
-                parseARGB(red) +
-                parseARGB(green) +
-                parseARGB(blue))
-                .toUpperCase();
     }
 
     /**
@@ -45,10 +33,10 @@ public class ColorUtils {
      * @return String
      */
     private static String parseARGB(int argb) {
-        StringBuilder sb = new StringBuilder(Integer.toHexString(argb & 0xff));
+        StringBuilder sb = new StringBuilder(Integer.toHexString(argb));
         if (sb.length() < 2) {
             sb.append("0");
         }
-        return sb.toString();
+        return sb.toString().toUpperCase();
     }
 }

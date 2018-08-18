@@ -1,6 +1,6 @@
 package cn.ljuns.logcollector;
 
-import android.content.Context;
+import android.app.Application;
 import android.support.annotation.NonNull;
 
 import java.io.BufferedReader;
@@ -13,31 +13,34 @@ import java.io.OutputStreamWriter;
 
 public class LogCollector implements CrashHandlerListener {
 
-    private Context mContext;
+    private Application mContext;
     private File mCacheFile;    // 缓存文件
+
+    private String[] mLogcatColors;
     private String[] mLogType;    //过滤类型
     private String mBgColor = "#FFFFFFFF";    // 背景颜色
+
     private boolean mCleanCache = false;    // 是否清除缓存日志文件
     private boolean mShowLogColors = false;  // 是否设置颜色
-    private String[] mLogcatColors;
 
     private LogRunnable mLogRunnable;
 
-    private LogCollector() {
+    private static volatile LogCollector sLogCollector;
+
+    private LogCollector(Application context) {
+        this.mContext = context;
         mLogcatColors = new String[TagUtils.TAGS.length];
     }
 
-    @Override
-    public void crashHandler() {
-        mLogRunnable.isCrash = true;
-    }
-
-    private static class SingletonHolder {
-        private static final LogCollector INSTANCE = new LogCollector();
-    }
-
-    public static LogCollector getInstance() {
-        return SingletonHolder.INSTANCE;
+    public static LogCollector getInstance(Application context) {
+        if (sLogCollector == null) {
+            synchronized (LogCollector.class) {
+                if (sLogCollector == null) {
+                    sLogCollector = new LogCollector(context);
+                }
+            }
+        }
+        return sLogCollector;
     }
 
     /**
@@ -110,15 +113,18 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 启动
-     * @param context Context
      */
-    public synchronized void start(Context context) {
-        mContext = context;
-        mCacheFile = CacheFile.createLogCacheFile(context, mCleanCache, mShowLogColors);
-        CrashHandler.getInstance().init(context, mCleanCache).crash(this);
+    public synchronized void start() {
+        mCacheFile = CacheFile.createLogCacheFile(mContext, mCleanCache, mShowLogColors);
+        CrashHandler.getInstance().init(mContext, mCleanCache).crash(this);
 
         mLogRunnable = new LogRunnable();
         new Thread(mLogRunnable).start();
+    }
+
+    @Override
+    public void crashHandler() {
+        mLogRunnable.isCrash = true;
     }
 
     private class LogRunnable implements Runnable {
