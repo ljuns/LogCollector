@@ -43,9 +43,9 @@ public class CacheFile {
         String name = "/" + dirName;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                 || !Environment.isExternalStorageRemovable()) {
-            return context.getApplicationContext().getExternalCacheDir() + name;
+            return context.getExternalCacheDir() + name;
         } else {
-            return context.getApplicationContext().getCacheDir() + name;
+            return context.getCacheDir() + name;
         }
     }
 
