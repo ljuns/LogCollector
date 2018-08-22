@@ -14,9 +14,12 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+
         LogCollector.getInstance(this)
 //                .setLogType(TagUtils.DEBUG)
                 .setCleanCache(true)
+                .setTag("MainActivity")
+//                .setLevel(LevelUtils.DEBUG)
 //                .setLogcatColors(R.color.colorAccent, R.color.colorPrimaryDark, Color.RED, Color.GREEN)
                 .start();
     }
