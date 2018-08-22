@@ -21,9 +21,8 @@ public class LogCollector implements CrashHandlerListener {
     private File mCacheFile;    // 缓存文件
 
     private String[] mLogcatColors;
-    private String[] mLogType;    //过滤类型
     private String[] mTags;
-    private String[] mLogcatLevels;
+    private String[] mLevels;
     private Map<String, String> mTagWithLevel;
     private String mBgColor = "#FFFFFFFF";    // 背景颜色
 
@@ -36,7 +35,7 @@ public class LogCollector implements CrashHandlerListener {
 
     private LogCollector(Application context) {
         this.mContext = context;
-        mLogcatColors = new String[TagUtils.TAGS.length];
+        mLogcatColors = new String[LevelUtils.TAGS.length];
     }
 
     public static LogCollector getInstance(Application context) {
@@ -63,17 +62,6 @@ public class LogCollector implements CrashHandlerListener {
 
     private LogCollector setCacheFile(@NonNull String path) {
         this.mCacheFile = new File(path);
-        return this;
-    }
-
-    /**
-     * 设置缓存类型
-     *
-     * @param types LogType
-     * @return LogCollector
-     */
-    public LogCollector setLogcatType(@TagUtils.LogcatType String... types) {
-        this.mLogType = types;
         return this;
     }
 
@@ -113,8 +101,8 @@ public class LogCollector implements CrashHandlerListener {
             System.out.println(color);
         }
 
-        if (mLogcatColors.length < TagUtils.TAGS.length) {
-            for (int i = mLogcatColors.length; i < TagUtils.TAGS.length; i++) {
+        if (mLogcatColors.length < LevelUtils.TAGS.length) {
+            for (int i = mLogcatColors.length; i < LevelUtils.TAGS.length; i++) {
                 mLogcatColors[i] = "#FF000000";
             }
         }
@@ -127,8 +115,8 @@ public class LogCollector implements CrashHandlerListener {
         return this;
     }
 
-    public LogCollector setLogcatLevel(@NonNull String... levels) {
-        mLogcatLevels = levels;
+    public LogCollector setLevel(@LevelUtils.Level String... levels) {
+        mLevels = levels;
         return this;
     }
 
@@ -170,23 +158,18 @@ public class LogCollector implements CrashHandlerListener {
             List<String> commandLine = new ArrayList<>();
 
             commandLine.add("logcat");
-            commandLine.add("-d");
             commandLine.add("-v");
             commandLine.add("time");
-//            commandLine.add("-f");
-//            commandLine.add(mCacheFile.getAbsolutePath());
-
-            if (mLogcatLevels != null && mLogcatLevels.length > 0) {
-                for (String level : mLogcatLevels) {
-                    commandLine.add("*:" + level);
-                }
-
-                commandLine.add("*:S");
-            }
 
             if (mTags != null && mTags.length > 0) {
                 commandLine.add("-s");
                 commandLine.addAll(Arrays.asList(mTags));
+            }
+
+            if (mLevels != null && mLevels.length > 0) {
+                for (String level : mLevels) {
+                    commandLine.add("*:" + level);
+                }
             }
 
             if (mTagWithLevel != null && !mTagWithLevel.isEmpty()) {
@@ -194,6 +177,13 @@ public class LogCollector implements CrashHandlerListener {
                     commandLine.add(entry.getKey());
                     commandLine.add(":");
                     commandLine.add(entry.getValue());
+                }
+
+                // 没有 tag 和 level 的时候想要 tag:level 生效就得再加 *:S
+                // 再加上 *:S 意思是只让 tag:level 生效
+                if ((mTags == null || mTags.length == 0)
+                        || (mLevels == null || mLevels.length == 0)) {
+                    commandLine.add("*:S");
                 }
             }
 
@@ -216,7 +206,7 @@ public class LogCollector implements CrashHandlerListener {
                     writer.write("<body bgcolor=\" " + mBgColor + " \">");
                 }
                 while (!isCrash && ((str = reader.readLine()) != null)) {
-//                    Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
+                    Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
                     outputLogcat(writer, str);
                 }
                 if (mShowLogColors) {
@@ -241,12 +231,6 @@ public class LogCollector implements CrashHandlerListener {
     private void outputLogcat(BufferedWriter writer, String str) throws IOException {
         String[] logcats = null;
 
-        if (mLogType != null && mLogType.length > 0) {
-            logcats = mLogType;
-        } else {
-            logcats = TagUtils.TAGS;
-        }
-
         if (mShowLogColors) {
             for (int i = 0; i < logcats.length; i++) {
                 if (str.contains(logcats[i])) {
@@ -254,15 +238,7 @@ public class LogCollector implements CrashHandlerListener {
                 }
             }
         } else {
-            if (mLogType != null && mLogType.length > 0) {
-                for (String logcat : logcats) {
-                    if (str.contains(logcat)) {
-                        writeWithoutColors(writer, str);
-                    }
-                }
-            } else {
-                writeWithoutColors(writer, str);
-            }
+            writeWithoutColors(writer, str);
         }
     }
 
