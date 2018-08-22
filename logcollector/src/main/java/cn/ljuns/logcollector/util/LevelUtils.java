@@ -1,4 +1,4 @@
-package cn.ljuns.logcollector;
+package cn.ljuns.logcollector.util;
 
 import android.support.annotation.StringDef;
 
@@ -13,6 +13,6 @@ public class LevelUtils {
     public static final String S = "S";
 
     @StringDef({V, D, I, W, E, F, S})
-    @interface Level {}
+    public @interface Level {}
 
 }

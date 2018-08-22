@@ -9,6 +9,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import cn.ljuns.logcollector.util.CloseUtils;
+import cn.ljuns.logcollector.util.FileUtils;
+
 /**
  * Created by ljuns on 2018/8/15
  * I am just a developer.
@@ -60,7 +63,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @param e
      */
     private void dumpExceptionToCacheFile(Throwable e) {
-        File file = CacheFile.createCrashCacheFile(mContext, mCleanCache);
+        File file = FileUtils.createCrashCacheFile(mContext, mCleanCache);
 
         PrintWriter printWriter = null;
         try {
