@@ -23,11 +23,14 @@ public class LogCollector implements CrashHandlerListener {
     private File mCacheFile;    // 缓存文件
 
     private String[] mLogcatColors;
-    private String[] mTags;
-    private String[] mLevels;
-    private Map<String, String> mTagWithLevel;
+    private String[] mTags; // 需要过滤的 TAG
+    private String[] mLevels;   // 需要过滤的列表
+    private String mFilterStr;  // 需要过滤的字符串
     private String mBgColor = "#FFFFFFFF";    // 背景颜色
 
+    private Map<String, String> mTagWithLevel;
+
+    private boolean mIgnoreCase = false;    // 是否过滤大小写
     private boolean mCleanCache = false;    // 是否清除缓存日志文件
     private boolean mShowLogColors = false;  // 是否设置颜色
 
@@ -73,7 +76,7 @@ public class LogCollector implements CrashHandlerListener {
      * @param cleanCache cleanCache
      * @return LogCollector
      */
-    public LogCollector setCleanCache(@NonNull boolean cleanCache) {
+    public LogCollector setCleanCache(boolean cleanCache) {
         this.mCleanCache = cleanCache;
         return this;
     }
@@ -112,28 +115,45 @@ public class LogCollector implements CrashHandlerListener {
         return this;
     }
 
+    /**
+     * 设置需要过滤的 TAG
+     * @param tags tags
+     * @return LogCollector
+     */
     public LogCollector setTag(@NonNull String... tags) {
         mTags = tags;
         return this;
     }
 
+    /**
+     * 设置需要过滤的类型
+     * @param levels levels
+     * @return LogCollector
+     */
     public LogCollector setLevel(@LevelUtils.Level String... levels) {
         mLevels = levels;
         return this;
     }
 
+    /**
+     * 设置需要过滤的 tag:level
+     * @param tagWithLevel tagWithLevel
+     * @return LogCollector
+     */
     public LogCollector setTagWithLevel(@NonNull Map<String, String> tagWithLevel) {
         mTagWithLevel = tagWithLevel;
         return this;
     }
 
-    public LogCollector setFilterStr(String... strs) {
-
-        return this;
-    }
-
-    public LogCollector setFilterStrIgnoreCase(String... strs) {
-
+    /**
+     * 设置需要过滤的字符串，区分大小写
+     * @param str str
+     * @param ignoreCase ignoreCase
+     * @return LogCollector
+     */
+    public LogCollector setFilterStr(@NonNull String str, boolean ignoreCase) {
+        mFilterStr = str;
+        mIgnoreCase = ignoreCase;
         return this;
     }
 
@@ -166,6 +186,13 @@ public class LogCollector implements CrashHandlerListener {
             if (mTags != null && mTags.length > 0) {
                 commandLine.add("-s");
                 commandLine.addAll(Arrays.asList(mTags));
+            }
+
+            if (mFilterStr != null) {
+                if (mIgnoreCase) {
+                    commandLine.add("-i");
+                }
+                commandLine.add(mFilterStr);
             }
 
             if (mLevels != null && mLevels.length > 0) {
@@ -202,7 +229,7 @@ public class LogCollector implements CrashHandlerListener {
                 writer = new BufferedWriter(
                         new OutputStreamWriter(new FileOutputStream(mCacheFile), "UTF-8"));
 
-                String str = null;
+                String str;
 
                 if (mShowLogColors) {
                     writer.write("<body bgcolor=\" " + mBgColor + " \">");
