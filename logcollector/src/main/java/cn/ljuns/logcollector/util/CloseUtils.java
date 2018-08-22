@@ -1,4 +1,4 @@
-package cn.ljuns.logcollector;
+package cn.ljuns.logcollector.util;
 
 import java.io.Closeable;
 import java.io.IOException;

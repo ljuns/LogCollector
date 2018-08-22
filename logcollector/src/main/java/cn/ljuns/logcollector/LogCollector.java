@@ -15,24 +15,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import cn.ljuns.logcollector.util.CloseUtils;
+import cn.ljuns.logcollector.util.FileUtils;
+import cn.ljuns.logcollector.util.LevelUtils;
+
+/**
+ * 日志收集
+ */
 public class LogCollector implements CrashHandlerListener {
 
-    private static final int LOGCAT_TYPE_COUNT = 6;
+    private static final String UTF8 = "UTF-8";
 
     private Application mContext;
     private File mCacheFile;    // 缓存文件
 
-    private String[] mLogcatColors;
     private String[] mTags; // 需要过滤的 TAG
     private String[] mLevels;   // 需要过滤的列表
     private String mFilterStr;  // 需要过滤的字符串
-    private String mBgColor = "#FFFFFFFF";    // 背景颜色
 
     private Map<String, String> mTagWithLevel;
 
     private boolean mIgnoreCase = false;    // 是否过滤大小写
     private boolean mCleanCache = false;    // 是否清除缓存日志文件
-    private boolean mShowLogColors = false;  // 是否设置颜色
 
     private LogRunnable mLogRunnable;
 
@@ -40,7 +44,6 @@ public class LogCollector implements CrashHandlerListener {
 
     private LogCollector(Application context) {
         this.mContext = context;
-        mLogcatColors = new String[LOGCAT_TYPE_COUNT];
     }
 
     public static LogCollector getInstance(Application context) {
@@ -78,40 +81,6 @@ public class LogCollector implements CrashHandlerListener {
      */
     public LogCollector setCleanCache(boolean cleanCache) {
         this.mCleanCache = cleanCache;
-        return this;
-    }
-
-    /**
-     * 设置背景颜色
-     * @param bgColor bgColor
-     * @return LogCollector
-     */
-    private LogCollector setBgColor(int bgColor) {
-//        this.mBgColor = ColorUtils.parseColor(bgColor);
-        return this;
-    }
-
-    /**
-     * 设置各种 logcat 颜色
-     * @param logcatColors logColors
-     * @return LogCollector
-     */
-    public LogCollector setLogcatColors(@NonNull int... logcatColors) {
-        for (int i = 0; i < logcatColors.length; i++) {
-            mLogcatColors[i] = ColorUtils.parseColor(mContext, logcatColors[i]);
-        }
-        mShowLogColors = true;
-
-        for (String color : mLogcatColors) {
-            System.out.println(color);
-        }
-
-        if (mLogcatColors.length < LOGCAT_TYPE_COUNT) {
-            for (int i = mLogcatColors.length; i < LOGCAT_TYPE_COUNT; i++) {
-                mLogcatColors[i] = "#FF000000";
-            }
-        }
-
         return this;
     }
 
@@ -161,7 +130,7 @@ public class LogCollector implements CrashHandlerListener {
      * 启动
      */
     public synchronized void start() {
-        mCacheFile = CacheFile.createLogCacheFile(mContext, mCleanCache, mShowLogColors);
+        mCacheFile = FileUtils.createLogCacheFile(mContext, mCleanCache);
         CrashHandler.getInstance().init(mContext, mCleanCache).crash(this);
         mLogRunnable = new LogRunnable();
         new Thread(mLogRunnable).start();
@@ -177,71 +146,36 @@ public class LogCollector implements CrashHandlerListener {
 
         @Override
         public void run() {
-            List<String> commandLine = new ArrayList<>();
-
-            commandLine.add("logcat");
-            commandLine.add("-v");
-            commandLine.add("time");
-
-            if (mTags != null && mTags.length > 0) {
-                commandLine.add("-s");
-                commandLine.addAll(Arrays.asList(mTags));
-            }
-
-            if (mFilterStr != null) {
-                if (mIgnoreCase) {
-                    commandLine.add("-i");
-                }
-                commandLine.add(mFilterStr);
-            }
-
-            if (mLevels != null && mLevels.length > 0) {
-                for (String level : mLevels) {
-                    commandLine.add("*:" + level);
-                }
-            }
-
-            if (mTagWithLevel != null && !mTagWithLevel.isEmpty()) {
-                for (Map.Entry<String, String> entry : mTagWithLevel.entrySet()) {
-                    commandLine.add(entry.getKey());
-                    commandLine.add(":");
-                    commandLine.add(entry.getValue());
-                }
-
-                // 没有 tag 和 level 的时候想要 tag:level 生效就得再加 *:S
-                // 再加上 *:S 意思是只让 tag:level 生效
-                if ((mTags == null || mTags.length == 0)
-                        || (mLevels == null || mLevels.length == 0)) {
-                    commandLine.add("*:S");
-                }
-            }
+            List<String> getCommandLine = new ArrayList<>();
+            List<String> cleanCommandLine = new ArrayList<>();
+            createGetCommand(getCommandLine);
+            createCleanCommand(cleanCommandLine);
 
             BufferedReader reader = null;
             BufferedWriter writer = null;
             try {
 
-                Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
+                Runtime.getRuntime().exec(
+                        cleanCommandLine.toArray(new String[cleanCommandLine.size()]));
                 // 获取 logcat
-                Process process = Runtime.getRuntime().exec(commandLine.toArray(new String[commandLine.size()]));
+                Process process = Runtime.getRuntime().exec(
+                        getCommandLine.toArray(new String[getCommandLine.size()]));
 
                 reader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream(), "UTF-8"));
+                        new InputStreamReader(process.getInputStream(), UTF8));
                 writer = new BufferedWriter(
-                        new OutputStreamWriter(new FileOutputStream(mCacheFile), "UTF-8"));
+                        new OutputStreamWriter(new FileOutputStream(mCacheFile), UTF8));
 
                 String str;
-
-                if (mShowLogColors) {
-                    writer.write("<body bgcolor=\" " + mBgColor + " \">");
-                }
                 while (!isCrash && ((str = reader.readLine()) != null)) {
-                    Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
-                    outputLogcat(writer, str);
-                }
-                if (mShowLogColors) {
-                    writer.write("</body>");
-                }
+                    Runtime.getRuntime().exec(
+                            cleanCommandLine.toArray(new String[cleanCommandLine.size()]));
 
+                    // 写数据
+                    writer.write(str);
+                    writer.newLine();
+                    writer.flush();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -252,51 +186,58 @@ public class LogCollector implements CrashHandlerListener {
     }
 
     /**
-     * 输出 logcat
-     * @param writer BufferedWriter
-     * @param str str
-     * @throws IOException
+     * 清除缓存日志
+     * @param commandLine commandLine
      */
-    private void outputLogcat(BufferedWriter writer, String str) throws IOException {
-        String[] logcats = null;
+    private void createCleanCommand(List<String> commandLine) {
+        commandLine.add("logcat");
+        commandLine.add("-c");
+    }
 
-        if (mShowLogColors) {
-            for (int i = 0; i < logcats.length; i++) {
-                if (str.contains(logcats[i])) {
-                    writeWithColors(writer, mLogcatColors[i], str);
-                }
-            }
-        } else {
-            writeWithoutColors(writer, str);
+    /**
+     * 获取日志
+     * @param commandLine commandLine
+     */
+    private void createGetCommand(List<String> commandLine) {
+        commandLine.add("logcat");
+        commandLine.add("-v");
+        commandLine.add("time");
+
+        // 过滤 TAG
+        if (mTags != null && mTags.length > 0) {
+            commandLine.add("-s");
+            commandLine.addAll(Arrays.asList(mTags));
         }
-    }
 
-    /**
-     * 写数据
-     * @param writer BufferedWriter
-     * @param str str
-     * @throws IOException
-     */
-    private void writeWithoutColors(BufferedWriter writer, String str) throws IOException {
-        writer.write(str);
-        flush(writer);
-    }
+        // 过滤字符串
+        if (mFilterStr != null) {
+            if (mIgnoreCase) {
+                commandLine.add("-i");
+            }
+            commandLine.add(mFilterStr);
+        }
 
+        // 过滤类别
+        if (mLevels != null && mLevels.length > 0) {
+            for (String level : mLevels) {
+                commandLine.add("*:" + level);
+            }
+        }
 
-    /**
-     * 写数据
-     * @param writer BufferedWriter
-     * @param color color
-     * @param str str
-     * @throws IOException
-     */
-    private void writeWithColors(BufferedWriter writer, String color, String str) throws IOException {
-        writer.write("<font size=\"3\" color=\"" + color + "\">" + str + "</font></br>");
-        flush(writer);
-    }
+        // 过滤 tag:level
+        if (mTagWithLevel != null && !mTagWithLevel.isEmpty()) {
+            for (Map.Entry<String, String> entry : mTagWithLevel.entrySet()) {
+                commandLine.add(entry.getKey());
+                commandLine.add(":");
+                commandLine.add(entry.getValue());
+            }
 
-    private void flush(BufferedWriter writer) throws IOException {
-        writer.newLine();
-        writer.flush();
+            // 没有 tag 和 level 的时候想要 tag:level 生效就得再加上 *:S
+            // 再加上 *:S 意思是只让 tag:level 生效
+            if ((mTags == null || mTags.length == 0)
+                    || (mLevels == null || mLevels.length == 0)) {
+                commandLine.add("*:S");
+            }
+        }
     }
 }

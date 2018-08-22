@@ -1,4 +1,4 @@
-package cn.ljuns.logcollector;
+package cn.ljuns.logcollector.util;
 
 import android.content.Context;
 import android.os.Environment;
@@ -15,14 +15,12 @@ import java.util.Locale;
  * I am just a developer.
  * 缓存文件
  */
-public class CacheFile {
+public class FileUtils {
 
     private static final String DEFAULT_FORMAT = "yyyyMMdd_HHmmss_SSS";
     private static final String LOG = "log";
     private static final String CRASH = "crash";
-    private static final String HTML = ".html";
     private static final String TXT = ".txt";
-
 
     /**
      * 文件名
@@ -55,8 +53,8 @@ public class CacheFile {
      * @param cleanCache cleanCache
      * @return LogCacheFile
      */
-    public static File createLogCacheFile(Context context, boolean cleanCache, boolean logColors) {
-        String fileName = getFileName(logColors ? HTML : TXT);
+    public static File createLogCacheFile(Context context, boolean cleanCache) {
+        String fileName = getFileName(TXT);
         String fileDir = getCacheFileDir(context, LOG);
         return createCacheFile(fileDir, fileName, cleanCache);
     }
