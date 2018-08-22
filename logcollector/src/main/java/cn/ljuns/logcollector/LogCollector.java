@@ -17,6 +17,8 @@ import java.util.Map;
 
 public class LogCollector implements CrashHandlerListener {
 
+    private static final int LOGCAT_TYPE_COUNT = 6;
+
     private Application mContext;
     private File mCacheFile;    // 缓存文件
 
@@ -35,7 +37,7 @@ public class LogCollector implements CrashHandlerListener {
 
     private LogCollector(Application context) {
         this.mContext = context;
-        mLogcatColors = new String[LevelUtils.TAGS.length];
+        mLogcatColors = new String[LOGCAT_TYPE_COUNT];
     }
 
     public static LogCollector getInstance(Application context) {
@@ -101,8 +103,8 @@ public class LogCollector implements CrashHandlerListener {
             System.out.println(color);
         }
 
-        if (mLogcatColors.length < LevelUtils.TAGS.length) {
-            for (int i = mLogcatColors.length; i < LevelUtils.TAGS.length; i++) {
+        if (mLogcatColors.length < LOGCAT_TYPE_COUNT) {
+            for (int i = mLogcatColors.length; i < LOGCAT_TYPE_COUNT; i++) {
                 mLogcatColors[i] = "#FF000000";
             }
         }
