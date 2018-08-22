@@ -16,10 +16,9 @@ public class MyApplication extends Application {
 
 
         LogCollector.getInstance(this)
-//                .setLogType(TagUtils.DEBUG)
                 .setCleanCache(true)
                 .setTag("MainActivity")
-//                .setLevel(LevelUtils.DEBUG)
+//                .setLevel(LevelUtils.D)
 //                .setLogcatColors(R.color.colorAccent, R.color.colorPrimaryDark, Color.RED, Color.GREEN)
                 .start();
     }

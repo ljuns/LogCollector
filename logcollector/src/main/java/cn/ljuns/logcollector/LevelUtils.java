@@ -4,16 +4,15 @@ import android.support.annotation.StringDef;
 
 public class LevelUtils {
 
-    public static final String VERBOSE = "V";
-    public static final String DEBUG = "D";
-    public static final String INFO = "I";
-    public static final String WARN = "W";
-    public static final String ERROR = "E";
-    public static final String ASSERT = "A";
+    public static final String V = "V";
+    public static final String D = "D";
+    public static final String I = "I";
+    public static final String W = "W";
+    public static final String E = "E";
+    public static final String F = "F";
+    public static final String S = "S";
 
-    public static final String[] TAGS = new String[]{VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT};
-
-    @StringDef({VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT})
+    @StringDef({V, D, I, W, E, F, S})
     @interface Level {}
 
 }
