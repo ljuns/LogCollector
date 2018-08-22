@@ -10,6 +10,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class LogCollector implements CrashHandlerListener {
 
@@ -18,6 +22,9 @@ public class LogCollector implements CrashHandlerListener {
 
     private String[] mLogcatColors;
     private String[] mLogType;    //过滤类型
+    private String[] mTags;
+    private String[] mLogcatLevels;
+    private Map<String, String> mTagWithLevel;
     private String mBgColor = "#FFFFFFFF";    // 背景颜色
 
     private boolean mCleanCache = false;    // 是否清除缓存日志文件
@@ -76,7 +83,7 @@ public class LogCollector implements CrashHandlerListener {
      * @param cleanCache cleanCache
      * @return LogCollector
      */
-    public LogCollector setCleanCache(boolean cleanCache) {
+    public LogCollector setCleanCache(@NonNull boolean cleanCache) {
         this.mCleanCache = cleanCache;
         return this;
     }
@@ -96,11 +103,15 @@ public class LogCollector implements CrashHandlerListener {
      * @param logcatColors logColors
      * @return LogCollector
      */
-    public LogCollector setLogcatColors(int... logcatColors) {
+    public LogCollector setLogcatColors(@NonNull int... logcatColors) {
         for (int i = 0; i < logcatColors.length; i++) {
             mLogcatColors[i] = ColorUtils.parseColor(mContext, logcatColors[i]);
         }
         mShowLogColors = true;
+
+        for (String color : mLogcatColors) {
+            System.out.println(color);
+        }
 
         if (mLogcatColors.length < TagUtils.TAGS.length) {
             for (int i = mLogcatColors.length; i < TagUtils.TAGS.length; i++) {
@@ -111,13 +122,37 @@ public class LogCollector implements CrashHandlerListener {
         return this;
     }
 
+    public LogCollector setTag(@NonNull String... tags) {
+        mTags = tags;
+        return this;
+    }
+
+    public LogCollector setLogcatLevel(@NonNull String... levels) {
+        mLogcatLevels = levels;
+        return this;
+    }
+
+    public LogCollector setTagWithLevel(@NonNull Map<String, String> tagWithLevel) {
+        mTagWithLevel = tagWithLevel;
+        return this;
+    }
+
+    public LogCollector setFilterStr(String... strs) {
+
+        return this;
+    }
+
+    public LogCollector setFilterStrIgnoreCase(String... strs) {
+
+        return this;
+    }
+
     /**
      * 启动
      */
     public synchronized void start() {
         mCacheFile = CacheFile.createLogCacheFile(mContext, mCleanCache, mShowLogColors);
         CrashHandler.getInstance().init(mContext, mCleanCache).crash(this);
-
         mLogRunnable = new LogRunnable();
         new Thread(mLogRunnable).start();
     }
@@ -132,11 +167,43 @@ public class LogCollector implements CrashHandlerListener {
 
         @Override
         public void run() {
+            List<String> commandLine = new ArrayList<>();
+
+            commandLine.add("logcat");
+            commandLine.add("-d");
+            commandLine.add("-v");
+            commandLine.add("time");
+//            commandLine.add("-f");
+//            commandLine.add(mCacheFile.getAbsolutePath());
+
+            if (mLogcatLevels != null && mLogcatLevels.length > 0) {
+                for (String level : mLogcatLevels) {
+                    commandLine.add("*:" + level);
+                }
+
+                commandLine.add("*:S");
+            }
+
+            if (mTags != null && mTags.length > 0) {
+                commandLine.add("-s");
+                commandLine.addAll(Arrays.asList(mTags));
+            }
+
+            if (mTagWithLevel != null && !mTagWithLevel.isEmpty()) {
+                for (Map.Entry<String, String> entry : mTagWithLevel.entrySet()) {
+                    commandLine.add(entry.getKey());
+                    commandLine.add(":");
+                    commandLine.add(entry.getValue());
+                }
+            }
+
             BufferedReader reader = null;
             BufferedWriter writer = null;
             try {
+
+                Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
                 // 获取 logcat
-                Process process = Runtime.getRuntime().exec(new String[]{"logcat", "-v", "time"});
+                Process process = Runtime.getRuntime().exec(commandLine.toArray(new String[commandLine.size()]));
 
                 reader = new BufferedReader(
                         new InputStreamReader(process.getInputStream(), "UTF-8"));
@@ -149,7 +216,7 @@ public class LogCollector implements CrashHandlerListener {
                     writer.write("<body bgcolor=\" " + mBgColor + " \">");
                 }
                 while (!isCrash && ((str = reader.readLine()) != null)) {
-                    Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
+//                    Runtime.getRuntime().exec(new String[]{"logcat", "-c"});
                     outputLogcat(writer, str);
                 }
                 if (mShowLogColors) {

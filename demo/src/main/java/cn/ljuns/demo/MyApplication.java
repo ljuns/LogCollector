@@ -1,7 +1,6 @@
 package cn.ljuns.demo;
 
 import android.app.Application;
-import android.graphics.Color;
 
 import cn.ljuns.logcollector.LogCollector;
 
@@ -18,7 +17,7 @@ public class MyApplication extends Application {
         LogCollector.getInstance(this)
 //                .setLogType(TagUtils.DEBUG)
                 .setCleanCache(true)
-                .setLogcatColors(R.color.colorAccent, R.color.colorPrimaryDark, Color.RED, Color.GREEN)
+//                .setLogcatColors(R.color.colorAccent, R.color.colorPrimaryDark, Color.RED, Color.GREEN)
                 .start();
     }
 }
