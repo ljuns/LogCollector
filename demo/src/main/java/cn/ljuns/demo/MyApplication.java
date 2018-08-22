@@ -14,6 +14,8 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+//        Map<String, String> map = new HashMap<>();
+//        map.put("MainActivity", )
 
         LogCollector.getInstance(this)
                 .setCleanCache(true)
