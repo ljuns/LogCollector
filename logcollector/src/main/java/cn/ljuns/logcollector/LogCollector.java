@@ -12,12 +12,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 import cn.ljuns.logcollector.util.CloseUtils;
 import cn.ljuns.logcollector.util.FileUtils;
 import cn.ljuns.logcollector.util.LevelUtils;
+import cn.ljuns.logcollector.util.TypeUtils;
 
 /**
  * 日志收集
@@ -27,16 +30,34 @@ public class LogCollector implements CrashHandlerListener {
     private static final String UTF8 = "UTF-8";
 
     private Application mContext;
-    private File mCacheFile;    // 缓存文件
-
-    private String[] mTags; // 需要过滤的 TAG
-    private String[] mLevels;   // 需要过滤的列表
-    private String mFilterStr;  // 需要过滤的字符串
+    /**
+     * 缓存文件
+     */
+    private File mCacheFile;
+    /**
+     * 需要过滤的 TAG
+     */
+    private String[] mTags;
+    /**
+     * 需要过滤的列表
+     */
+    private String[] mLevels;
+    /**
+     * 需要过滤的字符串
+     */
+    private String mFilterStr;
+    private String mFilterType;
 
     private Map<String, String> mTagWithLevel;
 
-    private boolean mIgnoreCase = false;    // 是否过滤大小写
-    private boolean mCleanCache = false;    // 是否清除缓存日志文件
+    /**
+     * 是否过滤大小写
+     */
+    private boolean mIgnoreCase = false;
+    /**
+     * 是否清除缓存日志文件
+     */
+    private boolean mCleanCache = false;
 
     private LogRunnable mLogRunnable;
 
@@ -44,6 +65,7 @@ public class LogCollector implements CrashHandlerListener {
 
     private LogCollector(Application context) {
         this.mContext = context;
+        mTagWithLevel = new HashMap<>();
     }
 
     public static LogCollector getInstance(Application context) {
@@ -106,11 +128,12 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的 tag:level
-     * @param tagWithLevel tagWithLevel
+     * @param tag tag
+     * @param level level
      * @return LogCollector
      */
-    public LogCollector setTagWithLevel(@NonNull Map<String, String> tagWithLevel) {
-        mTagWithLevel = tagWithLevel;
+    public LogCollector setTagWithLevel(@NonNull String tag, @LevelUtils.Level String level) {
+        mTagWithLevel.put(tag, level);
         return this;
     }
 
@@ -127,13 +150,23 @@ public class LogCollector implements CrashHandlerListener {
     }
 
     /**
+     * 设置需要过滤的字符串，区分大小写
+     * @param type type
+     * @return LogCollector
+     */
+    public LogCollector setFilterType(@TypeUtils.Type String type) {
+        mFilterType = type;
+        return this;
+    }
+
+    /**
      * 启动
      */
     public synchronized void start() {
         mCacheFile = FileUtils.createLogCacheFile(mContext, mCleanCache);
         CrashHandler.getInstance().init(mContext, mCleanCache).crash(this);
         mLogRunnable = new LogRunnable();
-        new Thread(mLogRunnable).start();
+        Executors.newSingleThreadExecutor().execute(mLogRunnable);
     }
 
     @Override
@@ -211,10 +244,17 @@ public class LogCollector implements CrashHandlerListener {
 
         // 过滤字符串
         if (mFilterStr != null) {
+            commandLine.add(" | grep ");
             if (mIgnoreCase) {
                 commandLine.add("-i");
             }
             commandLine.add(mFilterStr);
+        }
+
+        if (mFilterType != null) {
+            commandLine.add(" | grep ");
+            commandLine.add("^...................");
+            commandLine.add(mFilterType);
         }
 
         // 过滤类别
@@ -225,17 +265,20 @@ public class LogCollector implements CrashHandlerListener {
         }
 
         // 过滤 tag:level
-        if (mTagWithLevel != null && !mTagWithLevel.isEmpty()) {
+        if (!mTagWithLevel.isEmpty()) {
             for (Map.Entry<String, String> entry : mTagWithLevel.entrySet()) {
                 commandLine.add(entry.getKey());
                 commandLine.add(":");
                 commandLine.add(entry.getValue());
             }
 
-            // 没有 tag 和 level 的时候想要 tag:level 生效就得再加上 *:S
-            // 再加上 *:S 意思是只让 tag:level 生效
-            if ((mTags == null || mTags.length == 0)
-                    || (mLevels == null || mLevels.length == 0)) {
+            /**
+             * 没有 tag 和 level 的时候想要 tag:level 生效就得再加上 *:S，
+             * 再加上 *:S 意思是只让 tag:level 生效
+             */
+            boolean addCommand = (mTags == null || mTags.length == 0) &&
+                    (mLevels == null || mLevels.length == 0);
+            if (addCommand) {
                 commandLine.add("*:S");
             }
         }
