@@ -24,7 +24,7 @@
 	  	.setTag("MainActivity")
 	  	.start();
 	```
-	<img src="/image/tag.png" width="50%" height="50%" />
+	<img src="/image/tag.png" width="25%" height="25%" />
 2. 可选择收集某种类型的日志：
 	``` java
   	LogCollector.getInstance(this)
@@ -33,14 +33,14 @@
 	  	.setLevel(LevelUtils.W) // 表示收集 W 以后的日志，即收集 W、E、F、S 这四种日志
 	  	.start();
   	```
-	<img src="/image/level.png" width="30%" height="30%" />
+	<img src="/image/level.png" width="25%" height="25%" />
 3. 可同时设置需要收集的 TAG:level ：
 	  ``` java
 	  LogCollector.getInstance(this)
 		  .setTagWithLevel("EGL_emulation", LevelUtils.D)
 		  .start(this);
 	  ```
-	  ![](/image/tagwithlevel.png)
+	  <img src="/image/tagwithlevel.png" width="25%" height="25%" />
 4. 每次收集日志前是否清除之前的缓存文件：
 	  ``` java
 	  LogCollector.getInstance(this)
