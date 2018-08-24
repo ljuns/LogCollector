@@ -18,21 +18,30 @@
   	LogCollector.getInstance(this).start();
   	```
 ### 更多功能
-1. 可选择收集一种或多种类型的日志：
+1. 可以设置需要收集的 TAG 对应的日志：
+	``` java
+	LogCollector.getInstance(this)
+	  	.setTag("MainActivity")
+	  	.start();
+	```
+	<img src="/image/tag.png" width="50%" height="50%" />
+2. 可选择收集某种类型的日志：
 	``` java
   	LogCollector.getInstance(this)
-	  	// 可配置类型：VERBOSE、DEBUG、INFO、WARN、ERROR、ASSERT，默认收集这 6 种
-	  	.setLogcatType(TagUtils.DEBUG)
+	  	// 可配置类型：V、D、I、W、E、F、S
+		// V 表示最低级，所有类型都会收集；S 标记最高级，可能不会收集任何东西
+	  	.setLevel(LevelUtils.W) // 表示收集 W 以后的日志，即收集 W、E、F、S 这四种日志
 	  	.start();
   	```
-2. 默认情况下缓存日志文件是个 txt，可以设置输出的 logcat 字体颜色，此时缓存日志文件是个 html：
+	<img src="/image/level.png" width="30%" height="30%" />
+3. 可同时设置需要收集的 TAG:level ：
 	  ``` java
 	  LogCollector.getInstance(this)
-		  // 设置小于 6 种颜色时会用黑色填充，大于 6 种颜色时使用前 6 种颜色
-		  .setLogcatColors(R.color.colorAccent, R.color.colorPrimaryDark, Color.RED, Color.GREEN)
+		  .setTagWithLevel("EGL_emulation", LevelUtils.D)
 		  .start(this);
 	  ```
-3. 每次收集日志前是否清除之前的缓存文件：
+	  ![](/image/tagwithlevel.png)
+4. 每次收集日志前是否清除之前的缓存文件：
 	  ``` java
 	  LogCollector.getInstance(this)
 		  // 默认为 false，不清除缓存文件
