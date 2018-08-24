@@ -143,7 +143,7 @@ public class LogCollector implements CrashHandlerListener {
      * @param ignoreCase ignoreCase
      * @return LogCollector
      */
-    public LogCollector setFilterStr(@NonNull String str, boolean ignoreCase) {
+    private LogCollector setFilterStr(@NonNull String str, boolean ignoreCase) {
         mFilterStr = str;
         mIgnoreCase = ignoreCase;
         return this;
@@ -154,7 +154,7 @@ public class LogCollector implements CrashHandlerListener {
      * @param type type
      * @return LogCollector
      */
-    public LogCollector setFilterType(@TypeUtils.Type String type) {
+    private LogCollector setFilterType(@TypeUtils.Type String type) {
         mFilterType = type;
         return this;
     }
@@ -204,6 +204,7 @@ public class LogCollector implements CrashHandlerListener {
                     Runtime.getRuntime().exec(
                             cleanCommandLine.toArray(new String[cleanCommandLine.size()]));
 
+
                     // 写数据
                     writer.write(str);
                     writer.newLine();
@@ -233,6 +234,8 @@ public class LogCollector implements CrashHandlerListener {
      */
     private void createGetCommand(List<String> commandLine) {
         commandLine.add("logcat");
+        commandLine.add("-b");
+        commandLine.add("main");
         commandLine.add("-v");
         commandLine.add("time");
 
@@ -244,7 +247,10 @@ public class LogCollector implements CrashHandlerListener {
 
         // 过滤字符串
         if (mFilterStr != null) {
-            commandLine.add(" | grep ");
+            commandLine.add("sh");
+            commandLine.add("-c");
+
+            commandLine.add("| grep");
             if (mIgnoreCase) {
                 commandLine.add("-i");
             }
@@ -253,12 +259,14 @@ public class LogCollector implements CrashHandlerListener {
 
         if (mFilterType != null) {
             commandLine.add(" | grep ");
-            commandLine.add("^...................");
-            commandLine.add(mFilterType);
+            String type = "\"^..................." + mFilterType + "\"";
+            commandLine.add(type);
         }
 
         // 过滤类别
         if (mLevels != null && mLevels.length > 0) {
+            commandLine.add("sh");
+            commandLine.add("-c");
             for (String level : mLevels) {
                 commandLine.add("*:" + level);
             }
@@ -267,9 +275,7 @@ public class LogCollector implements CrashHandlerListener {
         // 过滤 tag:level
         if (!mTagWithLevel.isEmpty()) {
             for (Map.Entry<String, String> entry : mTagWithLevel.entrySet()) {
-                commandLine.add(entry.getKey());
-                commandLine.add(":");
-                commandLine.add(entry.getValue());
+                commandLine.add(entry.getKey() + ":" + entry.getValue());
             }
 
             /**

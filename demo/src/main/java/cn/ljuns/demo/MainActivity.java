@@ -24,13 +24,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Log.d(TAG, "onCreate: ");
+        Log.d("ljuns", "onCreate: ljuns");
 
-        try {
-            Thread.sleep(10000);
-            Log.d(TAG, "onCreate: --------------------------");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(10000);
+//            Log.d(TAG, "onCreate: --------------------------");
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
