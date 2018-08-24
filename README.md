@@ -1,5 +1,5 @@
 # LogCollector
-一个收集 app 输出日志的工具，输出文件保存在 /Android/data/项目包名/cache/ 下
+一个收集 app 输出日志的工具，输出文件保存在 /sdcard/Android/data/项目包名/cache/ 下
 
 ### 如何使用
 1. 在 module 的 `build.gradle ` 中添加依赖：
