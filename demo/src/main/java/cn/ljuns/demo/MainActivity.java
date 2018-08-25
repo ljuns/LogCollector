@@ -35,17 +35,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public static void main(String[] args) {
-//        List<String> commandList = new ArrayList<>();
-//        String command = "logcat -d -v time -f " + "/mnt/sdcard/bugLog/logcat.txt";
-//        commandList.add(command);
-//
-//        String[] coms = commandList.toArray(new String[commandList.size()]);
-//        for (String com : coms) {
-//            System.out.println(com);
-//        }
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
