@@ -143,18 +143,18 @@ public class LogCollector implements CrashHandlerListener {
      * @param ignoreCase ignoreCase
      * @return LogCollector
      */
-    private LogCollector setFilterStr(@NonNull String str, boolean ignoreCase) {
+    public LogCollector setFilterStr(@NonNull String str, boolean ignoreCase) {
         mFilterStr = str;
         mIgnoreCase = ignoreCase;
         return this;
     }
 
     /**
-     * 设置需要过滤的字符串，区分大小写
+     * 设置需要过滤的日志类型
      * @param type type
      * @return LogCollector
      */
-    private LogCollector setFilterType(@TypeUtils.Type String type) {
+    public LogCollector setFilterType(@TypeUtils.Type String type) {
         mFilterType = type;
         return this;
     }
@@ -204,6 +204,26 @@ public class LogCollector implements CrashHandlerListener {
                     Runtime.getRuntime().exec(
                             cleanCommandLine.toArray(new String[cleanCommandLine.size()]));
 
+                    if (mFilterType != null && mFilterStr != null) {
+                        String result = str;
+                        String filter = mFilterStr;
+                        if (mIgnoreCase) {
+                            result = result.toLowerCase();
+                            filter = filter.toLowerCase();
+                        }
+                        if (!result.contains(filter)
+                                && !str.contains(mFilterType + "/")) continue;
+                    } else if (mFilterStr != null) {
+                        String result = str;
+                        String filter = mFilterStr;
+                        if (mIgnoreCase) {
+                            result = result.toLowerCase();
+                            filter = filter.toLowerCase();
+                        }
+                        if (!result.contains(filter)) continue;
+                    } else if (mFilterType != null) {
+                        if (!str.contains(mFilterType + "/")) continue;
+                    }
 
                     // 写数据
                     writer.write(str);
@@ -246,22 +266,22 @@ public class LogCollector implements CrashHandlerListener {
         }
 
         // 过滤字符串
-        if (mFilterStr != null) {
-            commandLine.add("sh");
-            commandLine.add("-c");
+//        if (mFilterStr != null) {
+//            commandLine.add("sh");
+//            commandLine.add("-c");
+//
+//            commandLine.add("| grep");
+//            if (mIgnoreCase) {
+//                commandLine.add("-i");
+//            }
+//            commandLine.add(mFilterStr);
+//        }
 
-            commandLine.add("| grep");
-            if (mIgnoreCase) {
-                commandLine.add("-i");
-            }
-            commandLine.add(mFilterStr);
-        }
-
-        if (mFilterType != null) {
-            commandLine.add(" | grep ");
-            String type = "\"^..................." + mFilterType + "\"";
-            commandLine.add(type);
-        }
+//        if (mFilterType != null) {
+//            commandLine.add(" | grep ");
+//            String type = "\"^..................." + mFilterType + "\"";
+//            commandLine.add(type);
+//        }
 
         // 过滤类别
         if (mLevels != null && mLevels.length > 0) {
