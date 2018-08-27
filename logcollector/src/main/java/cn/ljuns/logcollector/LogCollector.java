@@ -112,7 +112,7 @@ public class LogCollector implements CrashHandlerListener {
      * @return LogCollector
      */
     public LogCollector setTag(@NonNull String... tags) {
-        mTags = tags;
+        this.mTags = tags;
         return this;
     }
 
@@ -122,7 +122,7 @@ public class LogCollector implements CrashHandlerListener {
      * @return LogCollector
      */
     public LogCollector setLevel(@LevelUtils.Level String... levels) {
-        mLevels = levels;
+        this.mLevels = levels;
         return this;
     }
 
@@ -133,19 +133,28 @@ public class LogCollector implements CrashHandlerListener {
      * @return LogCollector
      */
     public LogCollector setTagWithLevel(@NonNull String tag, @LevelUtils.Level String level) {
-        mTagWithLevel.put(tag, level);
+        this.mTagWithLevel.put(tag, level);
         return this;
     }
 
     /**
-     * 设置需要过滤的字符串，区分大小写
+     * 设置需要过滤的字符串，默认区分大小写
+     * @param str str
+     * @return LogCollector
+     */
+    public LogCollector setString(@NonNull String str) {
+        return setString(str, false);
+    }
+
+    /**
+     * 设置需要过滤的字符串
      * @param str str
      * @param ignoreCase ignoreCase
      * @return LogCollector
      */
-    public LogCollector setFilterStr(@NonNull String str, boolean ignoreCase) {
-        mFilterStr = str;
-        mIgnoreCase = ignoreCase;
+    public LogCollector setString(@NonNull String str, boolean ignoreCase) {
+        this.mFilterStr = str;
+        this.mIgnoreCase = ignoreCase;
         return this;
     }
 
@@ -154,8 +163,32 @@ public class LogCollector implements CrashHandlerListener {
      * @param type type
      * @return LogCollector
      */
-    public LogCollector setFilterType(@TypeUtils.Type String type) {
-        mFilterType = type;
+    public LogCollector setType(@TypeUtils.Type String type) {
+        this.mFilterType = type;
+        return this;
+    }
+
+    /**
+     * 设置需要过滤的字符串和日志类型，默认区分大小写
+     * @param str str
+     * @param type type
+     * @return LogCollector
+     */
+    public LogCollector setStringWithType(@NonNull String str, @TypeUtils.Type String type) {
+        return setStringWithType(str, type, false);
+    }
+
+    /**
+     * 设置需要过滤的字符串和日志类型
+     * @param str str
+     * @param type type
+     * @param ignoreCase ignoreCase
+     * @return LogCollector
+     */
+    public LogCollector setStringWithType(@NonNull String str, @TypeUtils.Type String type, boolean ignoreCase) {
+        this.mFilterStr = str;
+        this.mFilterType = type;
+        this.mIgnoreCase = ignoreCase;
         return this;
     }
 
@@ -264,24 +297,6 @@ public class LogCollector implements CrashHandlerListener {
             commandLine.add("-s");
             commandLine.addAll(Arrays.asList(mTags));
         }
-
-        // 过滤字符串
-//        if (mFilterStr != null) {
-//            commandLine.add("sh");
-//            commandLine.add("-c");
-//
-//            commandLine.add("| grep");
-//            if (mIgnoreCase) {
-//                commandLine.add("-i");
-//            }
-//            commandLine.add(mFilterStr);
-//        }
-
-//        if (mFilterType != null) {
-//            commandLine.add(" | grep ");
-//            String type = "\"^..................." + mFilterType + "\"";
-//            commandLine.add(type);
-//        }
 
         // 过滤类别
         if (mLevels != null && mLevels.length > 0) {
