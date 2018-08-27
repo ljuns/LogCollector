@@ -18,14 +18,14 @@
   	LogCollector.getInstance(this).start();
   	```
 ### 更多功能
-1. 可以设置需要收集的 TAG 对应的日志：
+1. 可以根据日志 TAG 进行过滤：
 	``` java
 	LogCollector.getInstance(this)
 	  	.setTag("MainActivity")
 	  	.start();
 	```
 	<img src="/image/tag.png" width="25%" height="25%" />
-2. 可选择收集某种类型的日志：
+2. 可以根据日志级别进行过滤：
 	``` java
   	LogCollector.getInstance(this)
 	  	// 可配置类型：V、D、I、W、E、F、S
@@ -34,14 +34,55 @@
 	  	.start();
   	```
 	<img src="/image/level.png" width="25%" height="25%" />
-3. 可同时设置需要收集的 TAG:level ：
+3. 可同时过滤 TAG 和日志级别：
 	  ``` java
+	  // 过滤 TAG 为 EGL_emulation，级别为 D
 	  LogCollector.getInstance(this)
 		  .setTagWithLevel("EGL_emulation", LevelUtils.D)
-		  .start(this);
+		  .start();
+	  
+	  // 如果使用如下方式，过滤的是 TAG 为 EGL_emulation，级别为大于等于 D
+	  .setTag("EGL_emulation")
+          .setLevel(LevelUtils.D)
 	  ```
 	  <img src="/image/tagwithlevel.png" width="25%" height="25%" />
-4. 每次收集日志前是否清除之前的缓存文件：
+4. 可以根据是否区分字符串大小写进行过滤：
+	``` java
+	LogCollector.getInstance(this)
+		// 过滤字符串 OnCreate，默认区分大小写
+                .setString("onCreate")
+		//.setString("onCreate", false) // 忽略大小写
+                .start();
+	```
+	<img src="/image/string.png" width="25%" height="25%" />
+5. 可以根据日志类型进行过滤：
+	``` java
+	LogCollector.getInstance(this)
+		// 可配置类型：V、D、I、W、E、A
+                .setType(TypeUtils.WARN) // 过滤日志类型是 WARN
+                .start();
+	```
+	<img src="/image/type.png" width="25%" height="25%" />
+6. 可以同时过滤字符串和日志类型：
+	``` java
+	LogCollector.getInstance(this)
+		// 过滤字符串 OnCreate，日志类型是 WARN，默认区分大小写
+                .setStringWithType("onCreate", TypeUtils.WARN)
+		//.setStringWithType("onCreate", TypeUtils.WARN, true) // 忽略大小写
+                .start();
+	
+	
+	// 使用如下方式也能达到相同效果：
+	LogCollector.getInstance(this)
+		// 过滤字符串 OnCreate，默认区分大小写
+		.setString("onCreate")
+                //.setString("onCreate", false) // 忽略大小写
+		// 过滤日志类型是 WARN
+                .setType(TypeUtils.WARN)
+                .start();
+	```
+	<img src="/image/typewithstring.png" width="25%" height="25%" />
+7. 每次收集日志前是否清除之前的缓存文件：
 	  ``` java
 	  LogCollector.getInstance(this)
 		  // 默认为 false，不清除缓存文件
