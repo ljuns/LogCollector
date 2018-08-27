@@ -213,16 +213,12 @@ public class LogCollector implements CrashHandlerListener {
         @Override
         public void run() {
             List<String> getCommandLine = new ArrayList<>();
-            List<String> cleanCommandLine = new ArrayList<>();
             createGetCommand(getCommandLine);
-            createCleanCommand(cleanCommandLine);
 
             BufferedReader reader = null;
             BufferedWriter writer = null;
             try {
-
-                Runtime.getRuntime().exec(
-                        cleanCommandLine.toArray(new String[cleanCommandLine.size()]));
+                createCleanCommand();
                 // 获取 logcat
                 Process process = Runtime.getRuntime().exec(
                         getCommandLine.toArray(new String[getCommandLine.size()]));
@@ -234,29 +230,8 @@ public class LogCollector implements CrashHandlerListener {
 
                 String str;
                 while (!isCrash && ((str = reader.readLine()) != null)) {
-                    Runtime.getRuntime().exec(
-                            cleanCommandLine.toArray(new String[cleanCommandLine.size()]));
-
-                    if (mFilterType != null && mFilterStr != null) {
-                        String result = str;
-                        String filter = mFilterStr;
-                        if (mIgnoreCase) {
-                            result = result.toLowerCase();
-                            filter = filter.toLowerCase();
-                        }
-                        if (!result.contains(filter)
-                                && !str.contains(mFilterType + "/")) continue;
-                    } else if (mFilterStr != null) {
-                        String result = str;
-                        String filter = mFilterStr;
-                        if (mIgnoreCase) {
-                            result = result.toLowerCase();
-                            filter = filter.toLowerCase();
-                        }
-                        if (!result.contains(filter)) continue;
-                    } else if (mFilterType != null) {
-                        if (!str.contains(mFilterType + "/")) continue;
-                    }
+                    createCleanCommand();
+                    if (filterStringType(str)) continue;
 
                     // 写数据
                     writer.write(str);
@@ -273,12 +248,42 @@ public class LogCollector implements CrashHandlerListener {
     }
 
     /**
-     * 清除缓存日志
-     * @param commandLine commandLine
+     * 过滤字符串和日志类别
+     * @param str
+     * @return
      */
-    private void createCleanCommand(List<String> commandLine) {
+    private boolean filterStringType(String str) {
+        if (mFilterType != null && mFilterStr != null) {
+            String result = str;
+            String filter = mFilterStr;
+            if (mIgnoreCase) {
+                result = result.toLowerCase();
+                filter = filter.toLowerCase();
+            }
+            return !result.contains(filter)
+                    && !str.contains(mFilterType + "/");
+        } else if (mFilterStr != null) {
+            String result = str;
+            String filter = mFilterStr;
+            if (mIgnoreCase) {
+                result = result.toLowerCase();
+                filter = filter.toLowerCase();
+            }
+            return !result.contains(filter);
+        } else if (mFilterType != null) {
+            return !str.contains(mFilterType + "/");
+        }
+        return false;
+    }
+
+    /**
+     * 清除缓存日志
+     */
+    private void createCleanCommand() throws IOException {
+        List<String> commandLine = new ArrayList<>();
         commandLine.add("logcat");
         commandLine.add("-c");
+        Runtime.getRuntime().exec(commandLine.toArray(new String[commandLine.size()]));
     }
 
     /**
