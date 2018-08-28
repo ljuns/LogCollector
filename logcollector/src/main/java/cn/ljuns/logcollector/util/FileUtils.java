@@ -2,6 +2,7 @@ package cn.ljuns.logcollector.util;
 
 import android.content.Context;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,92 +19,86 @@ import java.util.Locale;
 public class FileUtils {
 
     private static final String DEFAULT_FORMAT = "yyyyMMdd_HHmmss_SSS";
-    private static final String LOG = "log";
-    private static final String CRASH = "crash";
-    private static final String TXT = ".txt";
+    private static final int SYSTEM = 1024;
+    private static final int DIRECTORY_SIZE = 10;
 
     /**
-     * 文件名
-     * @return FileName
+     * 创建 logcat 缓存文件
+     *
+     * @param context    Context
+     * @param cleanCache cleanCache
+     * @return File
      */
-    private static String getFileName(String postfix) {
-        DateFormat format = new SimpleDateFormat(DEFAULT_FORMAT, Locale.getDefault());
-        return format.format(new Date(System.currentTimeMillis())) + postfix;
-    }
-
-    /**
-     * 文件路径
-     * @param context Context
-     * @param dirName dirName
-     * @return FileDir
-     */
-    private static String getCacheFileDir(Context context, String dirName) {
-        String name = "/" + dirName;
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                || !Environment.isExternalStorageRemovable()) {
-            return context.getExternalCacheDir() + name;
+    public static File createLogCacheFile(Context context, File file, boolean cleanCache) {
+        if (file == null) {
+            return createCacheFile(getCacheFileDir(context, "log"), getFileName(), cleanCache);
         } else {
-            return context.getCacheDir() + name;
+            return FileUtils.createLogCacheFile(file);
         }
     }
 
     /**
      * 创建 logcat 缓存文件
-     * @param context Context
-     * @param cleanCache cleanCache
-     * @return LogCacheFile
+     *
+     * @param file file
+     * @return File
      */
-    public static File createLogCacheFile(Context context, boolean cleanCache) {
-        String fileName = getFileName(TXT);
-        String fileDir = getCacheFileDir(context, LOG);
-        return createCacheFile(fileDir, fileName, cleanCache);
+    private static File createLogCacheFile(File file) {
+        if (file.exists()) {
+            if (file.isFile()) {
+                return createFile(file);
+            } else if (file.isDirectory()) {
+                return createCacheFile(file.getAbsolutePath(), getFileName(), false);
+            }
+        } else {
+            if (file.mkdirs()) {
+                return createLogCacheFile(file);
+            }
+        }
+        return file;
     }
 
     /**
      * 创建 crash 缓存文件
-     * @param context Context
+     *
+     * @param context    Context
      * @param cleanCache cleanCache
-     * @return CrashCacheFile
+     * @return File
      */
     public static File createCrashCacheFile(Context context, boolean cleanCache) {
-        String fileName = getFileName(TXT);
-        String fileDir = getCacheFileDir(context, CRASH);
-        return createCacheFile(fileDir, fileName, cleanCache);
+        return createCacheFile(getCacheFileDir(context, "crash"), getFileName(), cleanCache);
     }
 
     /**
      * 创建缓存文件
-     * @param path path
-     * @param fileName fileName
+     *
+     * @param path       path
+     * @param fileName   fileName
      * @param cleanCache cleanCache
      */
     private static File createCacheFile(String path, String fileName, boolean cleanCache) {
-        File folder = new File(path);
-        if (!folder.exists()) {
-            folder.mkdirs();
+        File directory = new File(path);
+        if (!directory.exists()) {
+            directory.mkdirs();
         }
 
-        // 计算缓存日志大小
-        computeSize(folder);
+        // 是否删除缓存日志文件
+        if (cleanCache) {
+            computeSize(directory);
+        }
 
-        // 初始化
-        return initCacheFile(fileName, folder, cleanCache);
+        File file = new File(directory, fileName);
+        return createFile(file);
     }
 
     /**
-     * 初始化缓存文件
+     * 新建文件
      *
-     * @param fileName fileName
-     * @param folder   folder
-     * @param cleanCache   cleanCache
+     * @param file
+     * @return
      */
-    private static File initCacheFile(String fileName, File folder, boolean cleanCache) {
-        // 是否删除缓存日志文件
-        if (cleanCache) {
-            cleanCache(folder);
-        }
-
-        File file = new File(folder, fileName);
+    @NonNull
+    private static File createFile(File file) {
         if (file.exists()) {
             file.delete();
         }
@@ -116,32 +111,50 @@ public class FileUtils {
     }
 
     /**
-     * 删除缓存文件
-     *
-     * @param folder folder
-     */
-    private static void cleanCache(File folder) {
-        for (File file : folder.listFiles()) {
-            file.delete();
-        }
-    }
-
-    /**
      * 获取缓存大小
      *
-     * @param folder folder
+     * @param directory directory
      */
-    private static void computeSize(File folder) {
+    private static void computeSize(File directory) {
         long length = 0L;
-        if (folder.exists()) {
-            for (File file1 : folder.listFiles()) {
+        if (directory.exists()) {
+            for (File file1 : directory.listFiles()) {
                 length += file1.length();
             }
         }
 
         //限定大小 10M
-        if (length / 1024 / 1024 >= 10) {
-            cleanCache(folder);
+        if ((length / SYSTEM / SYSTEM) >= DIRECTORY_SIZE) {
+            for (File file : directory.listFiles()) {
+                file.delete();
+            }
+        }
+    }
+
+    /**
+     * 文件名
+     *
+     * @return FileName
+     */
+    private static String getFileName() {
+        DateFormat format = new SimpleDateFormat(DEFAULT_FORMAT, Locale.getDefault());
+        return format.format(new Date(System.currentTimeMillis())) + ".txt";
+    }
+
+    /**
+     * 文件路径
+     *
+     * @param context Context
+     * @param dirName dirName
+     * @return FileDir
+     */
+    private static String getCacheFileDir(Context context, String dirName) {
+        String name = "/" + dirName;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+                || !Environment.isExternalStorageRemovable()) {
+            return context.getExternalCacheDir() + name;
+        } else {
+            return context.getCacheDir() + name;
         }
     }
 }

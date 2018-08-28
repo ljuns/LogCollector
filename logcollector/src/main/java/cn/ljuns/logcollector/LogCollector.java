@@ -28,7 +28,7 @@ import cn.ljuns.logcollector.util.TypeUtils;
 public class LogCollector implements CrashHandlerListener {
 
     private static final String UTF8 = "UTF-8";
-
+    private static volatile LogCollector sLogCollector;
     private Application mContext;
     /**
      * 缓存文件
@@ -47,9 +47,7 @@ public class LogCollector implements CrashHandlerListener {
      */
     private String mFilterStr;
     private String mFilterType;
-
     private Map<String, String> mTagWithLevel;
-
     /**
      * 是否过滤大小写
      */
@@ -58,10 +56,7 @@ public class LogCollector implements CrashHandlerListener {
      * 是否清除缓存日志文件
      */
     private boolean mCleanCache = false;
-
     private LogRunnable mLogRunnable;
-
-    private static volatile LogCollector sLogCollector;
 
     private LogCollector(Application context) {
         this.mContext = context;
@@ -85,12 +80,12 @@ public class LogCollector implements CrashHandlerListener {
      * @param file file
      * @return LogCollector
      */
-    private LogCollector setCacheFile(@NonNull File file) {
+    public LogCollector setCacheFile(@NonNull File file) {
         this.mCacheFile = file;
         return this;
     }
 
-    private LogCollector setCacheFile(@NonNull String path) {
+    public LogCollector setCacheFile(@NonNull String path) {
         this.mCacheFile = new File(path);
         return this;
     }
@@ -108,6 +103,7 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的 TAG
+     *
      * @param tags tags
      * @return LogCollector
      */
@@ -118,6 +114,7 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的类型
+     *
      * @param levels levels
      * @return LogCollector
      */
@@ -128,7 +125,8 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的 tag:level
-     * @param tag tag
+     *
+     * @param tag   tag
      * @param level level
      * @return LogCollector
      */
@@ -139,6 +137,7 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的字符串，默认区分大小写
+     *
      * @param str str
      * @return LogCollector
      */
@@ -148,7 +147,8 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的字符串
-     * @param str str
+     *
+     * @param str        str
      * @param ignoreCase ignoreCase
      * @return LogCollector
      */
@@ -160,6 +160,7 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的日志类型
+     *
      * @param type type
      * @return LogCollector
      */
@@ -170,7 +171,8 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的字符串和日志类型，默认区分大小写
-     * @param str str
+     *
+     * @param str  str
      * @param type type
      * @return LogCollector
      */
@@ -180,8 +182,9 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 设置需要过滤的字符串和日志类型
-     * @param str str
-     * @param type type
+     *
+     * @param str        str
+     * @param type       type
      * @param ignoreCase ignoreCase
      * @return LogCollector
      */
@@ -196,8 +199,9 @@ public class LogCollector implements CrashHandlerListener {
      * 启动
      */
     public synchronized void start() {
-        mCacheFile = FileUtils.createLogCacheFile(mContext, mCleanCache);
+        mCacheFile = FileUtils.createLogCacheFile(mContext, mCacheFile, mCleanCache);
         CrashHandler.getInstance().init(mContext, mCleanCache).crash(this);
+
         mLogRunnable = new LogRunnable();
         Executors.newSingleThreadExecutor().execute(mLogRunnable);
     }
@@ -207,48 +211,9 @@ public class LogCollector implements CrashHandlerListener {
         mLogRunnable.isCrash = true;
     }
 
-    private class LogRunnable implements Runnable {
-        volatile boolean isCrash = false;
-
-        @Override
-        public void run() {
-            List<String> getCommandLine = new ArrayList<>();
-            createGetCommand(getCommandLine);
-
-            BufferedReader reader = null;
-            BufferedWriter writer = null;
-            try {
-                createCleanCommand();
-                // 获取 logcat
-                Process process = Runtime.getRuntime().exec(
-                        getCommandLine.toArray(new String[getCommandLine.size()]));
-
-                reader = new BufferedReader(
-                        new InputStreamReader(process.getInputStream(), UTF8));
-                writer = new BufferedWriter(
-                        new OutputStreamWriter(new FileOutputStream(mCacheFile), UTF8));
-
-                String str;
-                while (!isCrash && ((str = reader.readLine()) != null)) {
-                    createCleanCommand();
-                    if (filterStringType(str)) continue;
-
-                    // 写数据
-                    writer.write(str);
-                    writer.newLine();
-                    writer.flush();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                CloseUtils.close(reader);
-                CloseUtils.close(writer);
-            }
-        }
-    }
-
     /**
      * 过滤字符串和日志类别
+     *
      * @param str
      * @return
      */
@@ -288,6 +253,7 @@ public class LogCollector implements CrashHandlerListener {
 
     /**
      * 获取日志
+     *
      * @param commandLine commandLine
      */
     private void createGetCommand(List<String> commandLine) {
@@ -326,6 +292,46 @@ public class LogCollector implements CrashHandlerListener {
                     (mLevels == null || mLevels.length == 0);
             if (addCommand) {
                 commandLine.add("*:S");
+            }
+        }
+    }
+
+    private class LogRunnable implements Runnable {
+        volatile boolean isCrash = false;
+
+        @Override
+        public void run() {
+            List<String> getCommandLine = new ArrayList<>();
+            createGetCommand(getCommandLine);
+
+            BufferedReader reader = null;
+            BufferedWriter writer = null;
+            try {
+                createCleanCommand();
+                // 获取 logcat
+                Process process = Runtime.getRuntime().exec(
+                        getCommandLine.toArray(new String[getCommandLine.size()]));
+
+                reader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream(), UTF8));
+                writer = new BufferedWriter(
+                        new OutputStreamWriter(new FileOutputStream(mCacheFile), UTF8));
+
+                String str;
+                while (!isCrash && ((str = reader.readLine()) != null)) {
+                    createCleanCommand();
+                    if (filterStringType(str)) continue;
+
+                    // 写数据
+                    writer.write(str);
+                    writer.newLine();
+                    writer.flush();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                CloseUtils.close(reader);
+                CloseUtils.close(writer);
             }
         }
     }

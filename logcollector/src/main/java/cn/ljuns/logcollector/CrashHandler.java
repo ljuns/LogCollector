@@ -18,11 +18,11 @@ import cn.ljuns.logcollector.util.FileUtils;
  */
 public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
+    private static CrashHandler sCrashHandler = new CrashHandler();
     private Application mContext;
     private boolean mCleanCache;
     private CrashHandlerListener mCrashHandlerListener;
     private Thread.UncaughtExceptionHandler mUncaughtExceptionHandler;
-    private static CrashHandler sCrashHandler = new CrashHandler();
 
     private CrashHandler() {}
 
@@ -60,6 +60,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
     /**
      * 缓存文件
+     *
      * @param e
      */
     private void dumpExceptionToCacheFile(Throwable e) {
