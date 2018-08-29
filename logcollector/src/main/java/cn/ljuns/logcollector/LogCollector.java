@@ -214,8 +214,8 @@ public class LogCollector implements CrashHandlerListener {
     /**
      * 过滤字符串和日志类别
      *
-     * @param str
-     * @return
+     * @param str str
+     * @return boolean
      */
     private boolean filterStringType(String str) {
         if (mFilterType != null && mFilterStr != null) {
@@ -320,7 +320,7 @@ public class LogCollector implements CrashHandlerListener {
                 String str;
                 while (!isCrash && ((str = reader.readLine()) != null)) {
                     createCleanCommand();
-                    if (filterStringType(str)) continue;
+                    if (filterStringType(str)) { continue; }
 
                     // 写数据
                     writer.write(str);
