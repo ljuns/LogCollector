@@ -51,7 +51,7 @@
 	LogCollector.getInstance(this)
 		// 过滤字符串 OnCreate，默认区分大小写
 		.setString("onCreate")
-		//.setString("onCreate", false) // 忽略大小写
+		//.setString("onCreate", true) // 忽略大小写
 		.start();
 	```
 	<img src="/image/string.png" width="25%" height="25%" />
@@ -76,13 +76,21 @@
 	LogCollector.getInstance(this)
 		// 过滤字符串 OnCreate，默认区分大小写
 		.setString("onCreate")
-		//.setString("onCreate", false) // 忽略大小写
+		//.setString("onCreate", true) // 忽略大小写
 		// 过滤日志类型是 WARN
 		.setType(TypeUtils.WARN)
 		.start();
 	```
 	<img src="/image/typewithstring.png" width="25%" height="25%" />
-7. 每次收集日志前是否清除之前的缓存文件：
+7. 可以自定义缓存文件：
+	``` java
+	File file = new File("");
+	LogCollector.getInstance(this)
+		// 还可以设置缓存文件路径
+		.setCacheFile(file)
+		.start();
+	```
+8. 每次收集日志前是否清除之前的缓存文件：
 	``` java
 	LogCollector.getInstance(this)
 		// 默认为 false，不清除缓存文件
