@@ -51,7 +51,7 @@
 	LogCollector.getInstance(this)
 		// 过滤字符串 OnCreate，默认区分大小写
 		.setString("onCreate")
-		//.setString("onCreate", false) // 忽略大小写
+		//.setString("onCreate", true) // 忽略大小写
 		.start();
 	```
 	<img src="/image/string.png" width="25%" height="25%" />
@@ -76,7 +76,7 @@
 	LogCollector.getInstance(this)
 		// 过滤字符串 OnCreate，默认区分大小写
 		.setString("onCreate")
-		//.setString("onCreate", false) // 忽略大小写
+		//.setString("onCreate", true) // 忽略大小写
 		// 过滤日志类型是 WARN
 		.setType(TypeUtils.WARN)
 		.start();
