@@ -3,7 +3,7 @@ package cn.ljuns.demo;
 import android.app.Application;
 
 import cn.ljuns.logcollector.LogCollector;
-import cn.ljuns.logcollector.util.LevelUtils;
+import cn.ljuns.logcollector.util.TypeUtils;
 
 /**
  * Created by ljuns on 2018/8/18
@@ -17,10 +17,11 @@ public class MyApplication extends Application {
         LogCollector.getInstance(this)
                 .setCleanCache(true)
 //                .setTag("EGL_emulation")
-                .setLevel(LevelUtils.D)
+//                .setLevel(LevelUtils.D)
 //                .setTagWithLevel("EGL_emulation", LevelUtils.D)
 //                .setString("onCreate", false)
 //                .setType(TypeUtils.WARN)
+                .setStringWithType("onCreate", TypeUtils.WARN, true)
                 .start();
     }
 }
