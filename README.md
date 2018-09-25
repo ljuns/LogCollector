@@ -1,5 +1,5 @@
 # LogCollector
-一个收集 app 输出日志的工具，输出文件保存在 /sdcard/Android/data/项目包名/cache/ 下
+一个收集 app 输出日志的工具，输出文件：模拟器是 /sdcard/Android/data/项目包名/cache/，真机是 /Android/data/项目包名/cache/，里面的 crash 目录是崩溃日志，log 目录是 logcat 日志。
 
 ### 如何使用
 1. 在 module 的 `build.gradle ` 中添加依赖：
