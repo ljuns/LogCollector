@@ -11,11 +11,11 @@
 	``` xml
   	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   	<uses-permission android:name="android.permission.READ_LOGS" />
-  ```
+  	```
 3. 在 Application 的 `onCreate()` 方法中调用如下：
   	``` java
-    	LogCollector.getInstance(this).start();
-  ```
+    LogCollector.getInstance(this).start();
+  	```
 ### 更多功能
 1. 可以根据日志 TAG 进行过滤：
 	``` java
@@ -31,20 +31,20 @@
 		// V 表示最低级，所有类型都会收集；S 标记最高级，可能不会收集任何东西
 	  	.setLevel(LevelUtils.W) // 表示收集 W 以后的日志，即收集 W、E、F、S 这四种日志
 	  	.start();
-  ```
+  	```
 	<img src="/image/level.png" width="25%" height="25%" />
 3. 可同时过滤 TAG 和日志级别：
-	  ``` java
-	  // 过滤 TAG 为 EGL_emulation，级别为 D
-	  LogCollector.getInstance(this)
-			.setTagWithLevel("EGL_emulation", LevelUtils.D)
-			.start();
+	``` java
+	// 过滤 TAG 为 EGL_emulation，级别为 D
+	LogCollector.getInstance(this)
+		.setTagWithLevel("EGL_emulation", LevelUtils.D)
+		.start();
 	  
-	  // 如果使用如下方式，过滤的是 TAG 为 EGL_emulation，级别为大于等于 D
-	  .setTag("EGL_emulation")
-	  .setLevel(LevelUtils.D)
+	// 如果使用如下方式，过滤的是 TAG 为 EGL_emulation，级别为大于等于 D
+	.setTag("EGL_emulation")
+	.setLevel(LevelUtils.D)
 	```
-	  <img src="/image/tagwithlevel.png" width="25%" height="25%" />
+	<img src="/image/tagwithlevel.png" width="25%" height="25%" />
 4. 可以根据是否区分字符串大小写进行过滤：
 	``` java
 	LogCollector.getInstance(this)
