@@ -58,7 +58,7 @@
 	``` java
 	LogCollector.getInstance(this)
 		// 可配置类型：V、D、I、W、E、A
-		.setType(TypeUtils.WARN) // 过滤日志类型是 WARN
+		.setType(TypeUtils.DEBUG) // 过滤日志类型是 DEBUG
 		.start();
 	```
 	<img src="/image/type.png" width="25%" height="25%" />
