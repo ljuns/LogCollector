@@ -16,6 +16,16 @@
   	``` java
     LogCollector.getInstance(this).start();
   	```
+	
+**注意，如果项目有多个 module，想要输出其他 module 的日志，需要在对应的 module 的 build.gradle 中添加如下内容：**
+``` gradle
+buildTypes {
+    release {
+        debuggable true
+    }
+}
+```
+
 ### 更多功能
 1. 可以根据日志 TAG 进行过滤：
 	``` java
